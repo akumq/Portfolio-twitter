@@ -11,25 +11,5 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  web:
-    image: node:latest
-    container_name: nextjs_container
-    working_dir: /app
-    volumes:
-      - .:/app
-    ports:
-      - "3000:3000"
-    command: sh -c "npm install && npm run dev"
-    depends_on:
-      - db
-
-  adminer:
-    image: adminer
-    container_name: adminer_container
-    ports:
-      - "8080:8080"
-    depends_on:
-      - db
-
 volumes:
   pgdata:

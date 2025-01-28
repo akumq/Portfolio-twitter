@@ -1,6 +1,13 @@
 import React from 'react'
+import prisma from '@/lib/prisma';
 
-function ThreadItem() {
+async function ThreadItem({id} : {id: number}) {
+
+    const thread = await prisma.thread.findUnique({
+        where: {
+            id: id
+        }
+    })
 
   return (
     <div className=' border border-border_color pb-3 snap-proximity '>
@@ -10,13 +17,13 @@ function ThreadItem() {
             <h3 className="text-xl text-text_highlight opacity-50 m-0 self-center "> @user</h3>
         </div>
         <div className='m-3'>
-            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Autem ipsum ratione vitae saepe tenetur necessitatibus corrupti optio, 
-            
-            numquam possimus consectetur nobis magni similique esse architecto sapiente. Esse repudiandae nulla suscipit.   
+           {thread?.content}
         </div>
-        <div className="w-full">
-            <img className="m-auto w-auto  self-center object-cover  rounded-lg" src="https://pbs.twimg.com/media/Gh6aZwHW4AEyr7r?format=jpg&name=900x900" alt="image description" />
-        </div>
+        {thread?.imageUrl && (
+            <div className="w-full">
+                <img className="m-auto w-auto  self-center object-cover  rounded-lg" src={thread.imageUrl} alt="image description" />
+            </div>
+        )}
         <div className="flex flex-row h-auto w-full mx-6 my-2 flex-auto">
             <div className= "flex w-auto flex-row flex-auto">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="size-5 self-center stroke-border_color">

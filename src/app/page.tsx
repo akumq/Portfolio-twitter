@@ -10,7 +10,6 @@ import Suggestions from "./Components/Suggestions/Suggestions";
 import Contact from "./Components/Suggestions/Contact";
 import LanguageItem from "./Components/Suggestions/Language/LanguageItem";
 import SideBar from "./Components/Navigations/SideBar";
-import ThreadItem from "./Components/Thread/ThreadItem";
 
 export default function Home() {
   return (
@@ -21,15 +20,6 @@ export default function Home() {
       <Profile />
     </SideBar>
     <ThreadList className="overflow-y-auto overflow-x-clip h-full max-h-screen w-fit no-scrollbar">
-      <ThreadItem></ThreadItem>
-      <ThreadItem></ThreadItem>
-      <ThreadItem></ThreadItem>
-      <ThreadItem></ThreadItem>
-      <ThreadItem></ThreadItem>
-      <ThreadItem></ThreadItem>
-      <ThreadItem></ThreadItem>
-      <ThreadItem></ThreadItem>
-      <ThreadItem></ThreadItem>
     </ThreadList>
     <Suggestions className="fixed">
       <Contact />
