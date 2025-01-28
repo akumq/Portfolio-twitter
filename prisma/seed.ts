@@ -3,14 +3,13 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-    // Créer des utilisateurs
-
     // Créer des threads
     const thread1 = await prisma.thread.create({
         data: {
             title: 'Premier fil de discussion',
             content: 'Ceci est le contenu du premier fil.',
             imageUrl: 'https://pbs.twimg.com/media/Gh6aZwHW4AEyr7r?format=jpg&name=900x900',
+            github: 'https://github.com/akumq/Portfolio-twitter',
         },
     });
 
