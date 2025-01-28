@@ -8,15 +8,17 @@ interface GithubLinkProps {
 }
 
 export default function GithubLink({ href, username }: GithubLinkProps) {
+    const handleClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        window.open(href, '_blank', 'noopener,noreferrer');
+    };
+
     return (
-        <a 
-            href={href} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
+        <button 
+            onClick={handleClick}
             className="text-sm text-text_highlight opacity-50 hover:opacity-100 transition-opacity"
         >
             @{username}
-        </a>
+        </button>
     );
 } 
