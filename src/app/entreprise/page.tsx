@@ -3,7 +3,7 @@ import SideBar from '../Components/Navigations/SideBar'
 import Navigations from '../Components/Navigations/Navigations'
 import Profile from '../Components/Navigations/Profile'
 
-function CV() {
+function Entreprise() {
 
     return (
         <div className="flex flex-row place-self-center absolute inset-1 w-8/12 h-full">
@@ -12,9 +12,9 @@ function CV() {
                 <Navigations/>
                 <Profile />
             </SideBar>
-            <p>CV</p>
+            <p>Entreprise</p>
         </div>
     )
 }
 
-export default CV
+export default Entreprise

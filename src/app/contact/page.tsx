@@ -3,7 +3,7 @@ import SideBar from '../Components/Navigations/SideBar'
 import Navigations from '../Components/Navigations/Navigations'
 import Profile from '../Components/Navigations/Profile'
 
-function CV() {
+function Contact() {
 
     return (
         <div className="flex flex-row place-self-center absolute inset-1 w-8/12 h-full">
@@ -11,10 +11,10 @@ function CV() {
                 <div className="bg-background basis-1/12"> Logo </div>{/* Logo */}
                 <Navigations/>
                 <Profile />
-            </SideBar>
-            <p>CV</p>
+            </SideBar>  
+            <p>Contact</p>
         </div>
     )
 }
 
-export default CV
+export default Contact

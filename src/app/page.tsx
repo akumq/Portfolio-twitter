@@ -27,7 +27,8 @@ export default function Home() {
       <ThreadItem></ThreadItem>
       <ThreadItem></ThreadItem>
       <ThreadItem></ThreadItem>
-      <ThreadItem></ThreadItem><ThreadItem></ThreadItem>
+      <ThreadItem></ThreadItem>
+      <ThreadItem></ThreadItem>
       <ThreadItem></ThreadItem>
     </ThreadList>
     <Suggestions className="fixed">

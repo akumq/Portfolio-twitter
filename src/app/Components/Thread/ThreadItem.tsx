@@ -1,6 +1,7 @@
 import React from 'react'
 
 function ThreadItem() {
+
   return (
     <div className=' border border-border_color pb-3 snap-proximity '>
         <div className="flex flex-row">
