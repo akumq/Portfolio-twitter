@@ -15,7 +15,7 @@ model Thread {
   title     String
   content   String
   imageUrl  String?
-  github    String?
+  github    String
   comments  Comment[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

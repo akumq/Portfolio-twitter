@@ -18,6 +18,7 @@ async function main() {
             title: 'Deuxième fil de discussion',
             content: 'Ceci est le contenu du deuxième fil.',
             imageUrl: 'https://pbs.twimg.com/media/Gh6aZwHW4AEyr7r?format=jpg&name=900x900',
+            github: 'https://github.com/akumq/Portfolio-twitter',
         },
     });
 

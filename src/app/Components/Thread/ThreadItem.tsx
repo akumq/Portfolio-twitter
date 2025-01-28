@@ -1,5 +1,6 @@
 import React from 'react'
 import prisma from '@/lib/prisma';
+import Link from 'next/link';
 
 async function ThreadItem({id} : {id: number}) {
 
@@ -10,7 +11,8 @@ async function ThreadItem({id} : {id: number}) {
     })
 
   return (
-    <div className=' border border-border_color pb-3 snap-proximity '>
+    <Link href={`/thread/${id}`} className='block'>
+      <div className='border border-border_color pb-3 snap-proximity hover:bg-secondary transition-colors'>
         <div className="flex flex-row">
             <div className="bg-slate-600 rounded-full size-11 m-3"></div>
             <h3 className="text-xl self-center ">user</h3>
@@ -55,7 +57,8 @@ async function ThreadItem({id} : {id: number}) {
                 <p className="opacity-50 text-xs self-center">2K</p>
             </div>     
         </div>
-    </div>
+      </div>
+    </Link>
   )
 }
 
