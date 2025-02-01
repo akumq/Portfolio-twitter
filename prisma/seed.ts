@@ -1,32 +1,68 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, ProjectType } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
-    // Créer des threads
-    const thread1 = await prisma.thread.create({
-        data: {
-            title: 'Premier fil de discussion',
-            content: 'Ceci est le contenu du premier fil.',
-            imageUrl: 'https://pbs.twimg.com/media/Gh6aZwHW4AEyr7r?format=jpg&name=900x900',
-            github: 'https://github.com/akumq/Portfolio-twitter',
-        },
-    });
+    // Nettoyer la base de données
+    await prisma.comment.deleteMany();
+    await prisma.thread.deleteMany();
+    await prisma.language.deleteMany();
 
-    const thread2 = await prisma.thread.create({
-        data: {
-            title: 'Deuxième fil de discussion',
-            content: 'Ceci est le contenu du deuxième fil.',
-            imageUrl: 'https://pbs.twimg.com/media/Gh6aZwHW4AEyr7r?format=jpg&name=900x900',
-            github: 'https://github.com/akumq/Portfolio-twitter',
+    // Créer les projets
+    const projects = [
+        {
+            title: "Noita Physics",
+            content: "Une simulation physique inspirée du jeu Noita, implémentant des mécaniques de particules et d'interactions fluides en temps réel.",
+            github: "https://github.com/akumq/noitaPhysics",
+            types: [ProjectType.GAME, ProjectType.DIGITAL_IMAGING],
+            languages: ["C++", "SFML", "CMake"]
         },
-    });
+        {
+            title: "Audio Transcription",
+            content: "Application de transcription audio utilisant des modèles de reconnaissance vocale avancés pour convertir l'audio en texte avec une haute précision.",
+            github: "https://github.com/akumq/audioTranscription",
+            types: [ProjectType.MACHINE_LEARNING, ProjectType.WEB_APP],
+            languages: ["Python", "Streamlit", "FFmpeg"]
+        },
+        {
+            title: "Cloth Simulation",
+            content: "Simulation de tissu interactive utilisant la méthode d'intégration de Verlet, permettant une simulation physique réaliste avec interactions utilisateur.",
+            github: "https://github.com/akumq/clothSimulation",
+            types: [ProjectType.DIGITAL_IMAGING, ProjectType.GAME],
+            languages: ["C++", "SFML", "CMake"]
+        },
+        {
+            title: "Portfolio Twitter",
+            content: "Un portfolio moderne inspiré de l'interface de Twitter, avec un design épuré et une expérience utilisateur optimisée.",
+            github: "https://github.com/akumq/portfolio-twitter",
+            types: [ProjectType.WEB_APP],
+            languages: ["TypeScript", "React", "TailwindCSS", "Prisma"]
+        }
+    ];
 
-    console.log({ thread1, thread2 });
+    // Créer les threads avec leurs langages
+    for (const project of projects) {
+        await prisma.thread.create({
+            data: {
+                title: project.title,
+                content: project.content,
+                github: project.github,
+                types: project.types,
+                languages: {
+                    connectOrCreate: project.languages.map(lang => ({
+                        where: { name: lang },
+                        create: { name: lang }
+                    }))
+                }
+            }
+        });
+    }
+
+    console.log('Base de données initialisée avec succès !');
 }
 
 main()
-    .catch(e => {
+    .catch((e) => {
         console.error(e);
         process.exit(1);
     })

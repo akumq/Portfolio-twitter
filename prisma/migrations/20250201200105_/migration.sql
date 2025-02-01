@@ -4,7 +4,7 @@ CREATE TABLE "Thread" (
     "title" TEXT NOT NULL,
     "content" TEXT NOT NULL,
     "imageUrl" TEXT,
-    "github" TEXT,
+    "github" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

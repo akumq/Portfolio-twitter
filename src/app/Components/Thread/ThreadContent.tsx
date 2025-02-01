@@ -1,31 +1,26 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 
-interface ThreadContentProps {
+type ThreadContentProps = {
   content: string;
-  maxLength?: number;
-}
+  imageUrl?: string | null;
+};
 
-export default function ThreadContent({ content, maxLength = 300 }: ThreadContentProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const shouldShowMore = content.length > maxLength;
-  const displayContent = isExpanded ? content : content.slice(0, maxLength);
-
+export default function ThreadContent({ content, imageUrl }: ThreadContentProps) {
   return (
-    <div className="relative">
-      <p className="text-lg mb-4">
-        {displayContent}
-        {!isExpanded && shouldShowMore && '...'}
+    <div className="px-4 py-2">
+      <p className="text-sm text-text_secondary whitespace-pre-wrap break-words">
+        {content}
       </p>
-      
-      {shouldShowMore && (
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="text-text_highlight hover:text-white transition-colors text-sm font-medium"
-        >
-          {isExpanded ? 'Voir moins' : 'Voir plus'}
-        </button>
+      {imageUrl && (
+        <div className="mt-3 relative w-full h-64">
+          <img 
+            src={imageUrl}
+            alt="Aperçu du projet"
+            className="rounded-lg object-cover w-full h-full"
+          />
+        </div>
       )}
     </div>
   );

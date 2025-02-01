@@ -1,11 +1,19 @@
 import React from 'react'
+import Link from 'next/link'
 
 function Contact() {
   return (
-    <div className="bg-background border border-border_color rounded-xl p-2 m-2"> {/* Contact */}
-        <h2 className="text-xl p-2 font-extrabold ">Vous Pouvez me contacter</h2>
-        <p className="p-2">Abonnez‑vous pour profiter de nouvelles fonctionnalités et recevoir une part des revenus si vous respectez les critères</p>
-        <button className="bg-button rounded-2xl p-1 m-2 px-2 font-bold text-base">Contact</button>
+    <div className="bg-background border border-border_color rounded-xl p-4 m-4">
+      <h2 className="text-xl font-bold mb-2">Me contacter</h2>
+      <p className="text-sm text-gray-500 mb-4">
+        N'hésitez pas à me contacter pour discuter de vos projets ou pour toute autre question.
+      </p>
+      <Link 
+        href="/contact"
+        className="inline-block bg-text_highlight text-white font-bold rounded-full px-4 py-2 hover:bg-text_highlight/90 transition-colors"
+      >
+        Contact
+      </Link>
     </div>
   )
 }

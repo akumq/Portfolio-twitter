@@ -15,13 +15,13 @@ function Profile() {
 
   if (!session) {
     return (
-      <div className="basis-2/12">
+      <div className="mt-auto p-4">
         <button 
           onClick={() => signIn('github')}
-          className="flex items-center space-x-2 hover:bg-slate-600/10 rounded-full p-4"
+          className="flex items-center space-x-3 hover:bg-slate-500/10 rounded-full p-4 w-full transition-colors"
         >
-          <div className="bg-slate-600 rounded-full size-11"></div>
-          <div className="flex flex-col">
+          <div className="bg-slate-600 rounded-full size-10"></div>
+          <div className="hidden lg:flex lg:flex-col">
             <span className="text-xl font-bold">Se connecter</span>
             <span className="text-sm text-gray-500">avec GitHub</span>
           </div>
@@ -31,25 +31,27 @@ function Profile() {
   }
 
   return (
-    <div className="basis-2/12">
+    <div className="mt-auto p-4">
       <button 
         onClick={handleSignOut}
-        className="rounded-full flex flex-row hover:bg-slate-600/10"
+        className="flex items-center space-x-3 hover:bg-slate-500/10 rounded-full p-4 w-full transition-colors"
       >
         {session.user?.image ? (
           <Image
             src={session.user.image}
             alt={`Photo de profil de ${session.user.name}`}
-            width={44}
-            height={44}
-            className="rounded-full m-5"
+            width={40}
+            height={40}
+            className="rounded-full"
           />
         ) : (
-          <div className="bg-slate-600 rounded-full size-11 m-5"></div>
+          <div className="bg-slate-600 rounded-full size-10"></div>
         )}
-        <div className="flex flex-col self-center">
-          <h2 className="text-xl pb-2 font-bold">{session.user?.name || 'Utilisateur'}</h2>
-          <p>Développeur</p>
+        <div className="hidden lg:flex lg:flex-col text-left">
+          <span className="text-xl font-bold truncate max-w-[150px]">
+            {session.user?.name || 'Utilisateur'}
+          </span>
+          <span className="text-sm text-gray-500">Développeur</span>
         </div>
       </button>
     </div>
