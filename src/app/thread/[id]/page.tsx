@@ -189,11 +189,8 @@ export default async function ThreadPage({ params }: { params: { id: string } })
       <Suspense fallback={<div className="w-[350px] xl:w-[400px]" />}>
         <Suggestions className="fixed right-0 lg:right-auto lg:relative hidden lg:flex lg:w-[350px] xl:w-[400px] h-screen">
           <Contact />
+          <ReseauxList />
           <LanguageList />
-          <ReseauxList>
-            <ReseauxItem name="linkedin" url="#" />
-            <ReseauxItem name="Github" url="#" />
-          </ReseauxList>
         </Suggestions>
       </Suspense>
     </main>

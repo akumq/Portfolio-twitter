@@ -28,11 +28,8 @@ export default function CVPage() {
       {/* Section suggestions - responsive */}
       <Suggestions className="fixed right-0 lg:right-auto lg:relative hidden lg:flex lg:w-[350px] xl:w-[400px] h-screen">
         <Contact />
+        <ReseauxList />
         <LanguageList />
-        <ReseauxList>
-          <ReseauxItem name="linkedin" url="#" />
-          <ReseauxItem name="Github" url="#" />
-        </ReseauxList>
       </Suggestions>
     </main>
   )
