@@ -94,7 +94,7 @@ export default function MessageHistory() {
             onClick={() => setIsModalOpen(true)}
             className="bg-text_highlight text-white px-4 py-2 rounded-full font-bold hover:bg-text_highlight/90 transition-colors"
           >
-            Envoyer votre premier message
+            Envoyer votre premier&#39;message
           </button>
         </div>
       ) : (

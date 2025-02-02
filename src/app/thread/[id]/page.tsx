@@ -6,15 +6,11 @@ import Link from 'next/link';
 import SideBar from '@/app/Components/Navigations/SideBar';
 import Navigations from '@/app/Components/Navigations/Navigations';
 import Profile from '@/app/Components/Navigations/Profile';
-import ThreadContent from '@/app/Components/Thread/ThreadContent';
 import dynamic from 'next/dynamic';
-import Image from 'next/image';
-import { revalidatePath } from 'next/cache';
 import Suggestions from '../../Components/Suggestions/Suggestions';
 import Contact from '../../Components/Suggestions/Contact';
 import LanguageList from '../../Components/Suggestions/Language/LanguageList';
 import ReseauxList from '../../Components/Suggestions/Reseaux/ReseauxList';
-import ReseauxItem from '../../Components/Suggestions/Reseaux/ReseauxItem';
 import ThreadItem from '@/app/Components/Thread/ThreadItem';
 import { unstable_cache } from 'next/cache';
 
@@ -99,8 +95,13 @@ const getGithubInfo = unstable_cache(
   { revalidate: 3600 } // Cache pendant 1 heure
 );
 
-export default async function ThreadPage({ params }: { params: { id: string } }) {
-  const { id } = await params;
+interface ThreadPageProps {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function ThreadPage(props: ThreadPageProps) {
+  const { id } = await props.params;
   const threadId = parseInt(id);
 
   // Récupérer les informations du thread

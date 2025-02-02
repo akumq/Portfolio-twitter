@@ -25,7 +25,7 @@ const PROJECT_TYPE_LABELS = {
   OTHER: 'Autre'
 } as const;
 
-export default function ActiveFilters({ languages, projectTypes, selectedLanguage, selectedType }: ActiveFiltersProps) {
+export default function ActiveFilters({ selectedLanguage, selectedType }: ActiveFiltersProps) {
   const [isOpen, setIsOpen] = useState(true);
   
   if (!selectedLanguage && !selectedType) return null;

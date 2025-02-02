@@ -7,32 +7,20 @@ import Profile from '@/app/Components/Navigations/Profile';
 import ActiveFilters from '@/app/Components/Filters/ActiveFilters';
 import Suggestions from '../Components/Suggestions/Suggestions';
 import Contact from '../Components/Suggestions/Contact';
-import LanguageList from '../Components/Suggestions/Language/LanguageList';
 import ReseauxList from '../Components/Suggestions/Reseaux/ReseauxList';
-import ReseauxItem from '../Components/Suggestions/Reseaux/ReseauxItem';
 import { ProjectType } from '@prisma/client';
 import ThreadList from '../Components/Thread/ThreadList';
 
-const PROJECT_TYPE_LABELS = {
-  WEB_APP: 'Application Web',
-  MOBILE_APP: 'Application Mobile',
-  DESKTOP_APP: 'Application Bureau',
-  DATA_SCIENCE: 'Science des Données',
-  MACHINE_LEARNING: 'Intelligence Artificielle',
-  DIGITAL_IMAGING: 'Imagerie Numérique',
-  GAME: 'Jeu Vidéo',
-  API: 'API',
-  LIBRARY: 'Bibliothèque',
-  CLI: 'Application Console',
-  OTHER: 'Autre'
-} as const;
+type SearchParams = { [key: string]: string | string[] | undefined };
 
-export default async function FiltersPage({
-  searchParams
-}: {
-  searchParams: { [key: string]: string | undefined }
-}) {
-  const { language, type: rawType } = await searchParams;
+interface FiltersProps {
+  searchParams: Promise<SearchParams>;
+}
+
+export default async function FiltersPage({ searchParams }: FiltersProps) {
+  const resolvedParams = await searchParams;
+  const language = typeof resolvedParams.language === 'string' ? resolvedParams.language : undefined;
+  const rawType = typeof resolvedParams.type === 'string' ? resolvedParams.type : undefined;
   const type = rawType as ProjectType | undefined;
 
   // Récupérer tous les langages utilisés avec leur nombre de projets

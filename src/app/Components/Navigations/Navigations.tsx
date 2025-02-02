@@ -2,11 +2,8 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import path from "path";
 
-type Props = {};
-
-const Navigations = (props: Props) => {
+const Navigations = () => {
   const pathname = usePathname()
   
   return (

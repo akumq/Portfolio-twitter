@@ -6,7 +6,6 @@ import Suggestions from '../Components/Suggestions/Suggestions'
 import Contact from '../Components/Suggestions/Contact'
 import LanguageList from '../Components/Suggestions/Language/LanguageList'
 import ReseauxList from '../Components/Suggestions/Reseaux/ReseauxList'
-import Image from 'next/image'
 import Link from 'next/link'
 
 const skills = {
@@ -171,7 +170,13 @@ function SkillCategory({ title, icon, skills }: {
   );
 }
 
-export default function CompetencePage() {
+interface CompetenceProps {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function CompetencePage({ searchParams }: CompetenceProps) {
+  await searchParams;
+
   return (
     <main className="flex min-h-screen h-screen flex-row max-w-7xl mx-auto overflow-hidden">
       {/* Barre latérale - responsive */}

@@ -6,7 +6,7 @@ function Contact() {
     <div className="bg-background border border-border_color rounded-xl p-4 m-4">
       <h2 className="text-xl font-bold mb-2">Me contacter</h2>
       <p className="text-sm text-gray-500 mb-4">
-        N'hésitez pas à me contacter pour discuter de vos projets ou pour toute autre question.
+        N&apos;hésitez pas à me contacter pour discuter de vos projets ou pour toute autre question.
       </p>
       <Link 
         href="/contact"

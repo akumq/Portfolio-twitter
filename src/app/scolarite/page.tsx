@@ -8,7 +8,13 @@ import LanguageList from '../Components/Suggestions/Language/LanguageList'
 import ReseauxList from '../Components/Suggestions/Reseaux/ReseauxList'
 import ExperienceItem from '../Components/Entreprise/ExperienceItem'
 
-export default function ScolaritePage() {
+interface ScolariteProps {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function ScolaritePage({ searchParams }: ScolariteProps) {
+  await searchParams;
+
   const scolarite = [
     {
       poste: "Master MIAGE",

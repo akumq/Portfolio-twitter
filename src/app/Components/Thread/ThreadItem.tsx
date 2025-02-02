@@ -2,24 +2,7 @@ import React, { Suspense } from 'react';
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import { Octokit } from '@octokit/rest';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import dynamic from 'next/dynamic';
-import GithubLink from './GithubLink';
-
-const PROJECT_TYPE_LABELS = {
-  WEB_APP: 'Application Web',
-  MOBILE_APP: 'Application Mobile',
-  DESKTOP_APP: 'Application Bureau',
-  DATA_SCIENCE: 'Science des Données',
-  MACHINE_LEARNING: 'Intelligence Artificielle',
-  DIGITAL_IMAGING: 'Imagerie Numérique',
-  GAME: 'Jeu Vidéo',
-  API: 'API',
-  LIBRARY: 'Bibliothèque',
-  CLI: 'Application Console',
-  OTHER: 'Autre'
-} as const;
 
 const ThreadHeader = dynamic(() => import('./ThreadHeader'), {
   loading: () => <div className="animate-pulse bg-secondary h-24 rounded-lg" />
@@ -44,14 +27,12 @@ async function ThreadItem({id} : {id: number}) {
         }
     });
 
-    let githubStats = {
+    const githubStats = {
         commits: 0,
         watchers: 0,
         stars: 0,
         ownerAvatar: ''
     };
-
-    const session = await getServerSession(authOptions);
 
     if (thread?.github) {
         try {

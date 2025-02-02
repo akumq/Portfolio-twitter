@@ -1,22 +1,19 @@
-import Image from "next/image";
 import { ProjectType } from '@prisma/client';
 
 import Navigations  from "./Components/Navigations/Navigations";
 import Profile from "./Components/Navigations/Profile";
 import ThreadList from "./Components/Thread/ThreadList";
 import ReseauxList from "./Components/Suggestions/Reseaux/ReseauxList";
-import ReseauxItem from "./Components/Suggestions/Reseaux/ReseauxItem";
 import LanguageList from "./Components/Suggestions/Language/LanguageList";
 import Suggestions from "./Components/Suggestions/Suggestions";
 import Contact from "./Components/Suggestions/Contact";
 import SideBar from "./Components/Navigations/SideBar";
-import ActiveFilters from "./Components/Filters/ActiveFilters";
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined }
-}) {
+interface HomeProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function Home({ searchParams }: HomeProps) {
   const { language, type } = await searchParams;
   const languageFilter = language as string;
   const typeFilter = type as ProjectType | undefined;
