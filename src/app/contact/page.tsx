@@ -13,7 +13,7 @@ import ContactForm from '@/app/Components/Contact/ContactForm'
 const MainContent = () => {
   return (
     <div className="max-w-2xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Nous contacter</h1>
+      <h1 className="text-2xl font-bold mb-6">Me contacter</h1>
       <Suspense fallback={<div>Chargement du formulaire...</div>}>
         <ContactForm />
       </Suspense>

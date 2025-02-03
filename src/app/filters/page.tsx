@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import SideBar from '@/app/Components/Navigations/SideBar';
@@ -90,7 +90,7 @@ export default async function FiltersPage({ searchParams }: FiltersProps) {
           )}
 
           {/* Liste des langages */}
-          <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-border_color scrollbar-track-transparent">
+          <div className="flex-1 overflow-y-auto hide-scrollbar">
             <div className="divide-y divide-border_color">
               {languages.map((language) => (
                 <Link 
@@ -125,10 +125,16 @@ export default async function FiltersPage({ searchParams }: FiltersProps) {
       </section>
 
       {/* Section suggestions - responsive */}
-      <Suggestions className="fixed right-0 lg:right-auto lg:relative hidden lg:flex lg:w-[350px] xl:w-[400px] h-screen">
-        <Contact />
-        <ReseauxList />
-      </Suggestions>
+      <Suspense fallback={<div className="w-[350px] xl:w-[400px]" />}>
+        <Suggestions className="fixed right-0 lg:right-auto lg:relative hidden lg:flex lg:w-[350px] xl:w-[400px] h-screen">
+          <Suspense fallback={<p className="text-sm p-2">Chargement des contacts...</p>}>
+            <Contact />
+          </Suspense>
+          <Suspense fallback={<p className="text-sm p-2">Chargement des réseaux...</p>}>
+            <ReseauxList />
+          </Suspense>
+        </Suggestions>
+      </Suspense>
     </main>
   );
 } 

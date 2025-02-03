@@ -27,11 +27,11 @@ export default async function Home({ searchParams }: HomeProps) {
       </SideBar>
 
       {/* Section principale - responsive */}
-      <section className="flex-1 min-w-0 border-x border-border_color ml-[72px] md:ml-[88px] lg:ml-0">
+      <section className="flex-1 border-x border-border_color p-0 m-0 min-w-0 ml-[72px] md:ml-[88px] lg:ml-0">
         <ThreadList 
           language={languageFilter} 
           type={typeFilter}
-          className="w-full max-w-[600px] mx-auto"
+          className="mw-0 w-full max-w-[600px] "
         />
       </section>
 

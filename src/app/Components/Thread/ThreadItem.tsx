@@ -61,9 +61,9 @@ async function ThreadItem({id} : {id: number}) {
     if (!thread) return null;
 
     return (
-        <div className='block'>
+        <div className='block w-full border-b border-border_color m-0 l-0'>
             <Link href={`/thread/${id}`} className='block'>
-                <div className='border border-border_color pb-3 snap-proximity hover:bg-secondary transition-colors'>
+                <div className='pb-3 snap-proximity hover:bg-secondary transition-colors'>
                     <Suspense fallback={<div className="animate-pulse bg-secondary h-24 rounded-lg" />}>
                         <ThreadHeader 
                             title={thread.title}

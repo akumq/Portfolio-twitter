@@ -10,7 +10,6 @@ interface CVData {
   jobTitle: string;
   city: string;
   country: string;
-  phone: string;
   email: string;
   education: Array<{
     school: string;
@@ -53,7 +52,6 @@ async function getCVData(): Promise<CVData> {
     jobTitle: "Etudiant en Master MIAGE en Recherche d'Alternance",
     city: 'Nancy',
     country: 'France',
-    phone: '+33781965497',
     email: 'madousow88@gmail.com',
     education: [
       {

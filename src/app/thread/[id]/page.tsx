@@ -128,8 +128,8 @@ export default async function ThreadPage(props: ThreadPageProps) {
       </SideBar>
 
       {/* Section principale - responsive */}
-      <section className="flex-1 min-w-0 border-x border-border_color ml-[72px] md:ml-[88px] lg:ml-0 h-screen overflow-hidden">
-        <div className="w-full max-w-[600px] mx-auto h-full overflow-y-auto scrollbar-thin scrollbar-thumb-border_color scrollbar-track-transparent">
+      <section className="flex-1 min-w-0 ml-[72px] md:ml-[88px] lg:ml-0 h-screen overflow-hidden">
+        <div className="w-full max-w-[600px] mx-auto h-full overflow-y-auto hide-scrollbar">
           {/* En-tête fixe */}
           <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border_color p-4">
             <div className="flex items-center gap-4">
@@ -142,7 +142,12 @@ export default async function ThreadPage(props: ThreadPageProps) {
             </div>
           </div>
 
-          <ThreadItem id={threadId} />
+          {/* ThreadItem avec Suspense */}
+          <Suspense fallback={<p className="text-center py-4">Chargement du projet...</p>}>
+            <div className="m-0">
+              <ThreadItem id={threadId} />
+            </div>
+          </Suspense>
           
           {/* Informations GitHub */}
           {githubInfo && (
@@ -189,9 +194,15 @@ export default async function ThreadPage(props: ThreadPageProps) {
       {/* Section suggestions avec Suspense */}
       <Suspense fallback={<div className="w-[350px] xl:w-[400px]" />}>
         <Suggestions className="fixed right-0 lg:right-auto lg:relative hidden lg:flex lg:w-[350px] xl:w-[400px] h-screen">
-          <Contact />
-          <ReseauxList />
-          <LanguageList />
+          <Suspense fallback={<p>Chargement des contacts...</p>}>
+            <Contact />
+          </Suspense>
+          <Suspense fallback={<p>Chargement des réseaux...</p>}>
+            <ReseauxList />
+          </Suspense>
+          <Suspense fallback={<p>Chargement des langages...</p>}>
+            <LanguageList />
+          </Suspense>
         </Suggestions>
       </Suspense>
     </main>

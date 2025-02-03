@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import Navigations from '../Components/Navigations/Navigations'
 import Profile from '../Components/Navigations/Profile'
 import SideBar from '../Components/Navigations/SideBar'
@@ -191,7 +191,7 @@ export default async function CompetencePage({ searchParams }: CompetenceProps) 
           <h1 className="text-2xl font-bold">Compétences</h1>
         </div>
         
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto hide-scrollbar">
           <div className="p-4 max-w-[600px] mx-auto pb-20">
             {Object.entries(skills).map(([key, category]) => (
               <SkillCategory key={key} {...category} />
@@ -201,11 +201,19 @@ export default async function CompetencePage({ searchParams }: CompetenceProps) 
       </section>
 
       {/* Section suggestions - responsive */}
-      <Suggestions className="fixed right-0 lg:right-auto lg:relative hidden lg:flex lg:w-[350px] xl:w-[400px] h-screen">
-        <Contact />
-        <ReseauxList />
-        <LanguageList />
-      </Suggestions>
+      <Suspense fallback={<div className="w-[350px] xl:w-[400px]" />}>
+        <Suggestions className="fixed right-0 lg:right-auto lg:relative hidden lg:flex lg:w-[350px] xl:w-[400px] h-screen">
+          <Suspense fallback={<p className="text-sm p-2">Chargement des contacts...</p>}>
+            <Contact />
+          </Suspense>
+          <Suspense fallback={<p className="text-sm p-2">Chargement des réseaux...</p>}>
+            <ReseauxList />
+          </Suspense>
+          <Suspense fallback={<p className="text-sm p-2">Chargement des langages...</p>}>
+            <LanguageList />
+          </Suspense>
+        </Suggestions>
+      </Suspense>
     </main>
   )
 }

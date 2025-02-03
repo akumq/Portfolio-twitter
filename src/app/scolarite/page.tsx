@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import Navigations from '../Components/Navigations/Navigations'
 import Profile from '../Components/Navigations/Profile'
 import SideBar from '../Components/Navigations/SideBar'
@@ -73,8 +73,8 @@ export default async function ScolaritePage({ searchParams }: ScolariteProps) {
       </SideBar>
 
       {/* Section principale - responsive */}
-      <section className="flex-1 min-w-0 border-x border-border_color ml-[72px] md:ml-[88px] lg:ml-0">
-        <div className="w-full max-w-[600px] mx-auto p-4">
+      <section className="flex-1 min-w-0 border-x border-border_color ml-[72px] md:ml-[88px] lg:ml-0 h-screen overflow-hidden">
+        <div className="w-full max-w-[600px] mx-auto p-4 h-full overflow-y-auto hide-scrollbar">
           <h1 className="text-2xl font-bold mb-6">Parcours Scolaire</h1>
           
           {/* Liste des formations */}
@@ -97,11 +97,19 @@ export default async function ScolaritePage({ searchParams }: ScolariteProps) {
       </section>
 
       {/* Section suggestions - responsive */}
-      <Suggestions className="fixed right-0 lg:right-auto lg:relative hidden lg:flex lg:w-[350px] xl:w-[400px] h-screen">
-        <Contact />
-        <ReseauxList />
-        <LanguageList />
-      </Suggestions>
+      <Suspense fallback={<div className="w-[350px] xl:w-[400px]" />}>
+        <Suggestions className="fixed right-0 lg:right-auto lg:relative hidden lg:flex lg:w-[350px] xl:w-[400px] h-screen">
+          <Suspense fallback={<p className="text-sm p-2">Chargement des contacts...</p>}>
+            <Contact />
+          </Suspense>
+          <Suspense fallback={<p className="text-sm p-2">Chargement des réseaux...</p>}>
+            <ReseauxList />
+          </Suspense>
+          <Suspense fallback={<p className="text-sm p-2">Chargement des langages...</p>}>
+            <LanguageList />
+          </Suspense>
+        </Suggestions>
+      </Suspense>
     </main>
   )
 }
