@@ -18,6 +18,8 @@
     "@prisma/extension-accelerate": "^1.2.1",
     "@types/jsdom": "^21.1.7",
     "@types/nodemailer": "^6.4.17",
+    "@vercel/next": "^4.5.0",
+    "@vercel/speed-insights": "^1.1.0",
     "date-fns": "^4.1.0",
     "jsdom": "^26.0.0",
     "next": "^15.1.4",

@@ -19,7 +19,7 @@ export default async function Home({ searchParams }: HomeProps) {
   const typeFilter = type as ProjectType | undefined;
 
   return (
-    <main className="flex min-h-screen flex-row max-w-7xl mx-auto">
+    <main className="flex min-h-screen bg-background flex-row max-w-7xl mx-auto">
       {/* Barre latérale - responsive */}
       <SideBar className="fixed left-0 lg:left-auto lg:relative hidden sm:flex sm:w-[72px] md:w-[88px] lg:w-[275px] h-screen">
         <Navigations />
