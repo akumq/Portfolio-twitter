@@ -5,7 +5,7 @@ import { useSession, signIn, signOut } from "next-auth/react"
 import Image from 'next/image'
 
 function Profile() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
 
   const handleSignOut = () => {
     if (window.confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
@@ -13,21 +13,22 @@ function Profile() {
     }
   }
 
-  if (!session) {
+  if (status === 'loading') {
     return (
-      <div className="mt-auto p-4">
-        <button 
-          onClick={() => signIn('github')}
-          className="flex items-center space-x-3 hover:bg-slate-500/10 rounded-full p-4 w-full transition-colors"
-        >
-          <div className="bg-slate-600 rounded-full size-10"></div>
-          <div className="hidden lg:flex lg:flex-col">
-            <span className="text-xl font-bold">Se connecter</span>
-            <span className="text-sm text-gray-500">avec GitHub</span>
+      <div className="p-4 border-t border-border_color">
+        <div className="animate-pulse flex items-center gap-3">
+          <div className="w-10 h-10 bg-border_color rounded-full" />
+          <div className="flex-1">
+            <div className="h-4 bg-border_color rounded w-24" />
+            <div className="h-3 bg-border_color rounded w-16 mt-2" />
           </div>
-        </button>
+        </div>
       </div>
     )
+  }
+
+  if (!session) {
+    return null
   }
 
   return (

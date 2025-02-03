@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/app/Components/AuthProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import MobileNav from './Components/Navigations/MobileNav'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({
       >
         <AuthProvider>{children}</AuthProvider>
         <SpeedInsights />
+        <MobileNav />
       </body>
     </html>
   );

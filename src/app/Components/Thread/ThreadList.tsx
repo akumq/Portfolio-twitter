@@ -42,7 +42,7 @@ async function ThreadList({
 
   return (
     <div className={`bg-background p-0 w-full relative basis-2/3 border-none ${className}`}>
-      <div className="h-screen w-full overflow-y-auto p-0 m-0 scrollbar-thin scrollbar-thumb-border_color scrollbar-track-transparent">
+      <div className="h-[calc(100vh-4rem)] sm:h-screen w-full overflow-y-auto p-0 m-0 scrollbar-thin scrollbar-thumb-border_color scrollbar-track-transparent">
         {threads.map((thread) => (
           <ThreadItem key={thread.id} id={thread.id} />
         ))}

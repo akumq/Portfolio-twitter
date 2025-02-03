@@ -73,8 +73,8 @@ export default async function ScolaritePage({ searchParams }: ScolariteProps) {
       </SideBar>
 
       {/* Section principale - responsive */}
-      <section className="flex-1 min-w-0 border-x border-border_color ml-[72px] md:ml-[88px] lg:ml-0 h-screen overflow-hidden">
-        <div className="w-full max-w-[600px] mx-auto p-4 h-full overflow-y-auto hide-scrollbar">
+      <section className="flex-1 min-w-0 border-x border-border_color ml-0 sm:ml-[72px] md:ml-[88px] lg:ml-0 h-screen overflow-hidden mt-14 sm:mt-0">
+        <div className="w-full max-w-[600px] mx-auto p-4 h-full overflow-y-auto hide-scrollbar pb-20 sm:pb-0">
           <h1 className="text-2xl font-bold mb-6">Parcours Scolaire</h1>
           
           {/* Liste des formations */}

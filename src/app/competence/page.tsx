@@ -179,20 +179,16 @@ export default async function CompetencePage({ searchParams }: CompetenceProps) 
 
   return (
     <main className="flex min-h-screen h-screen flex-row max-w-7xl mx-auto overflow-hidden">
-      {/* Barre latérale - responsive */}
+      {/* Barre latérale - masquée sur mobile */}
       <SideBar className="fixed left-0 lg:left-auto lg:relative hidden sm:flex sm:w-[72px] md:w-[88px] lg:w-[275px] h-screen">
         <Navigations />
         <Profile />
       </SideBar>
 
-      {/* Section principale - responsive */}
-      <section className="flex-1 min-w-0 border-x border-border_color ml-[72px] md:ml-[88px] lg:ml-0 h-screen flex flex-col">
-        <div className="flex-none bg-background/80 backdrop-blur-sm border-b border-border_color p-4">
-          <h1 className="text-2xl font-bold">Compétences</h1>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto hide-scrollbar">
-          <div className="p-4 max-w-[600px] mx-auto pb-20">
+      {/* Section principale - adaptée pour mobile */}
+      <section className="flex-1 min-w-0 border-x border-border_color ml-0 sm:ml-[72px] md:ml-[88px] lg:ml-0 h-screen flex flex-col mt-14 sm:mt-0">
+        <div className="flex-1 overflow-y-auto hide-scrollbar pb-20 sm:pb-0">
+          <div className="p-4 max-w-[600px] mx-auto">
             {Object.entries(skills).map(([key, category]) => (
               <SkillCategory key={key} {...category} />
             ))}
@@ -200,20 +196,18 @@ export default async function CompetencePage({ searchParams }: CompetenceProps) 
         </div>
       </section>
 
-      {/* Section suggestions - responsive */}
-      <Suspense fallback={<div className="w-[350px] xl:w-[400px]" />}>
-        <Suggestions className="fixed right-0 lg:right-auto lg:relative hidden lg:flex lg:w-[350px] xl:w-[400px] h-screen">
-          <Suspense fallback={<p className="text-sm p-2">Chargement des contacts...</p>}>
-            <Contact />
-          </Suspense>
-          <Suspense fallback={<p className="text-sm p-2">Chargement des réseaux...</p>}>
-            <ReseauxList />
-          </Suspense>
-          <Suspense fallback={<p className="text-sm p-2">Chargement des langages...</p>}>
-            <LanguageList />
-          </Suspense>
-        </Suggestions>
-      </Suspense>
+      {/* Section suggestions - masquée sur mobile */}
+      <Suggestions className="fixed right-0 lg:right-auto lg:relative hidden lg:flex lg:w-[350px] xl:w-[400px] h-screen">
+        <Suspense fallback={<p className="text-sm p-2">Chargement des contacts...</p>}>
+          <Contact />
+        </Suspense>
+        <Suspense fallback={<p className="text-sm p-2">Chargement des réseaux...</p>}>
+          <ReseauxList />
+        </Suspense>
+        <Suspense fallback={<p className="text-sm p-2">Chargement des langages...</p>}>
+          <LanguageList />
+        </Suspense>
+      </Suggestions>
     </main>
   )
 }

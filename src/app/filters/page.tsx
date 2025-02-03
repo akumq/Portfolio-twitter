@@ -63,15 +63,15 @@ export default async function FiltersPage({ searchParams }: FiltersProps) {
 
   return (
     <main className="flex min-h-screen flex-row max-w-7xl mx-auto">
-      {/* Barre latérale - responsive */}
+      {/* Barre latérale - masquée sur mobile */}
       <SideBar className="fixed left-0 lg:left-auto lg:relative hidden sm:flex sm:w-[72px] md:w-[88px] lg:w-[275px] h-screen">
         <Navigations />
         <Profile />
       </SideBar>
 
-      {/* Section principale - responsive */}
-      <section className="flex-1 min-w-0 border-x border-border_color ml-[72px] md:ml-[88px] lg:ml-0 h-screen overflow-hidden">
-        <div className="w-full max-w-[600px] mx-auto h-full flex flex-col">
+      {/* Section principale - adaptée pour mobile */}
+      <section className="flex-1 min-w-0 border-x border-border_color ml-0 sm:ml-[72px] md:ml-[88px] lg:ml-0 h-screen overflow-hidden mt-14 sm:mt-0">
+        <div className="w-full max-w-[600px] mx-auto h-full flex flex-col pb-20 sm:pb-0">
           {/* En-tête fixe */}
           <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-sm border-b border-border_color p-4">
             <div className="flex items-center gap-4">
@@ -124,17 +124,15 @@ export default async function FiltersPage({ searchParams }: FiltersProps) {
         </div>
       </section>
 
-      {/* Section suggestions - responsive */}
-      <Suspense fallback={<div className="w-[350px] xl:w-[400px]" />}>
-        <Suggestions className="fixed right-0 lg:right-auto lg:relative hidden lg:flex lg:w-[350px] xl:w-[400px] h-screen">
-          <Suspense fallback={<p className="text-sm p-2">Chargement des contacts...</p>}>
-            <Contact />
-          </Suspense>
-          <Suspense fallback={<p className="text-sm p-2">Chargement des réseaux...</p>}>
-            <ReseauxList />
-          </Suspense>
-        </Suggestions>
-      </Suspense>
+      {/* Section suggestions - masquée sur mobile */}
+      <Suggestions className="fixed right-0 lg:right-auto lg:relative hidden lg:flex lg:w-[350px] xl:w-[400px] h-screen">
+        <Suspense fallback={<p className="text-sm p-2">Chargement des contacts...</p>}>
+          <Contact />
+        </Suspense>
+        <Suspense fallback={<p className="text-sm p-2">Chargement des réseaux...</p>}>
+          <ReseauxList />
+        </Suspense>
+      </Suggestions>
     </main>
   );
 } 

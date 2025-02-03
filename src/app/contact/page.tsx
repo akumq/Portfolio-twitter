@@ -24,27 +24,21 @@ const MainContent = () => {
 export default function ContactPage() {
   return (
     <main className="flex min-h-screen flex-row max-w-7xl mx-auto">
-      {/* Barre latérale - responsive */}
+      {/* Barre latérale - masquée sur mobile */}
       <SideBar className="fixed left-0 lg:left-auto lg:relative hidden sm:flex sm:w-[72px] md:w-[88px] lg:w-[275px] h-screen">
-        <Suspense fallback={<div>Chargement de la navigation...</div>}>
-          <Navigations />
-        </Suspense>
-        <Suspense fallback={<div>Chargement du profil...</div>}>
-          <Profile />
-        </Suspense>
+        <Navigations />
+        <Profile />
       </SideBar>
 
-      {/* Section principale - responsive */}
-      <section className="flex-1 min-w-0 border-x border-border_color ml-[72px] md:ml-[88px] lg:ml-0">
-        <Suspense fallback={<div>Chargement de l&apos;historique...</div>}>
+      {/* Section principale - adaptée pour mobile */}
+      <section className="flex-1 min-w-0 border-x border-border_color ml-0 sm:ml-[72px] md:ml-[88px] lg:ml-0 mt-14 sm:mt-0">
+        <div className="w-full pb-20 sm:pb-0">
           <MessageHistory />
-        </Suspense>
-        <Suspense fallback={<div>Chargement du formulaire...</div>}>
           <MainContent />
-        </Suspense>
+        </div>
       </section>
 
-      {/* Section suggestions - responsive */}
+      {/* Section suggestions - masquée sur mobile */}
       <Suggestions className="fixed right-0 lg:right-auto lg:relative hidden lg:flex lg:w-[350px] xl:w-[400px] h-screen">
         <Suspense fallback={<div>Chargement des contacts...</div>}>
           <Contact />

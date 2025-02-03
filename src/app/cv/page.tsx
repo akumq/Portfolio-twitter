@@ -172,19 +172,18 @@ export default async function CVPage() {
 
   return (
     <main className="flex min-h-screen flex-row max-w-7xl mx-auto">
-      {/* Barre latérale - responsive */}
+      {/* Barre latérale - masquée sur mobile */}
       <SideBar className="fixed left-0 lg:left-auto lg:relative hidden sm:flex sm:w-[72px] md:w-[88px] lg:w-[275px] h-screen">
         <Navigations />
         <Profile />
       </SideBar>
 
-      {/* Section principale - responsive */}
-      <section className="flex-1 min-w-0 border-x border-border_color ml-[72px] md:ml-[88px] lg:ml-0">
-        <div className="w-full">
+      {/* Section principale - adaptée pour mobile */}
+      <section className="flex-1 min-w-0 border-x border-border_color ml-0 sm:ml-[72px] md:ml-[88px] lg:ml-0 mt-14 sm:mt-0">
+        <div className="pb-20 sm:pb-0">
           <CVContent initialData={cvData} />
         </div>
       </section>
-
     </main>
   )
 }
