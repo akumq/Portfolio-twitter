@@ -194,9 +194,9 @@ export default function CVContent({ initialData }: Props) {
             </div>
           </div>
 
-          {/* Centres d'intérêt */}
+          {/* Centres d&apos;intérêt */}
           <div className="px-4 py-3">
-            <h3 className="text-lg font-bold text-foreground mb-4">Centres d'intérêt</h3>
+            <h3 className="text-lg font-bold text-foreground mb-4">Centres d&apos;intérêt</h3>
             <div className="space-y-4">
               {initialData.passions.map((interest, index) => (
                 <div key={index} className="hover:bg-secondary/5 -mx-4 px-4 py-3 transition-colors">
