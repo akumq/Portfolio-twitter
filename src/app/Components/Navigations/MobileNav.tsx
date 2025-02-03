@@ -30,8 +30,8 @@ function MobileNavContent() {
             ) : (
               <div className="bg-slate-600 rounded-full w-8 h-8" />
             )}
-            <span className="font-bold">
-              {session.user?.name || 'Utilisateur'}
+            <span className="font-bold max-w-[120px] truncate text-sm">
+              {session.user?.name || 'Profil'}
             </span>
           </button>
         ) : (
@@ -40,7 +40,7 @@ function MobileNavContent() {
             className="flex items-center gap-3"
           >
             <div className="bg-slate-600 rounded-full w-8 h-8" />
-            <span className="font-bold">Se connecter</span>
+            <span className="font-bold">Connexion</span>
           </button>
         )}
       </div>
@@ -71,9 +71,11 @@ function MobileNavContent() {
           {/* En-tête du menu */}
           
           <div className="flex-1 overflow-y-auto">
-            <Navigations />
+            <Navigations showText={true} />
           </div>
-          <Profile />
+          <div className="border-t border-border_color p-4">
+            <Profile showText={true} />
+          </div>
         </div>
       </div>
     </>

@@ -3,7 +3,11 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
-const Navigations = () => {
+interface NavigationsProps {
+  showText?: boolean;
+}
+
+const Navigations = ({ showText = false }: NavigationsProps) => {
   const pathname = usePathname()
   
   return (
@@ -35,7 +39,7 @@ const Navigations = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
               </svg>
             )}
-            <span className="hidden lg:inline ml-3 text-xl">Projets</span>
+            <span className={`${showText ? 'inline' : 'hidden lg:inline'} ml-3 text-xl`}>Projets</span>
           </li>
         </Link>
 
@@ -53,7 +57,7 @@ const Navigations = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
               </svg>
             )}
-            <span className="hidden lg:inline ml-3 text-xl">CV</span>
+            <span className={`${showText ? 'inline' : 'hidden lg:inline'} ml-3 text-xl`}>CV</span>
           </li>
         </Link>
 
@@ -70,7 +74,7 @@ const Navigations = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
               </svg>
             )}
-            <span className="hidden lg:inline ml-3 text-xl">Parcours Scolaire</span>
+            <span className={`${showText ? 'inline' : 'hidden lg:inline'} ml-3 text-xl`}>Parcours Scolaire</span>
           </li>
         </Link>
 
@@ -87,7 +91,7 @@ const Navigations = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
               </svg>
             )}
-            <span className="hidden lg:inline ml-3 text-xl">Compétences</span>
+            <span className={`${showText ? 'inline' : 'hidden lg:inline'} ml-3 text-xl`}>Compétences</span>
           </li>
         </Link>
 
@@ -105,7 +109,7 @@ const Navigations = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
               </svg>
             )}
-            <span className="hidden lg:inline ml-3 text-xl">Contact</span>
+            <span className={`${showText ? 'inline' : 'hidden lg:inline'} ml-3 text-xl`}>Contact</span>
           </li>
         </Link>
       </ul>

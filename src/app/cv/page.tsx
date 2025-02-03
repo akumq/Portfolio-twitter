@@ -10,6 +10,7 @@ interface CVData {
   jobTitle: string;
   city: string;
   country: string;
+  phone: string;
   email: string;
   education: Array<{
     school: string;
@@ -52,6 +53,7 @@ async function getCVData(): Promise<CVData> {
     jobTitle: "Etudiant en Master MIAGE en Recherche d'Alternance",
     city: 'Nancy',
     country: 'France',
+    phone: '+33781965497',
     email: 'madousow88@gmail.com',
     education: [
       {
@@ -180,7 +182,7 @@ export default async function CVPage() {
 
       {/* Section principale - adaptée pour mobile */}
       <section className="flex-1 min-w-0 border-x border-border_color ml-0 sm:ml-[72px] md:ml-[88px] lg:ml-0 mt-14 sm:mt-0">
-        <div className="pb-20 sm:pb-0">
+        <div className="w-full">
           <CVContent initialData={cvData} />
         </div>
       </section>

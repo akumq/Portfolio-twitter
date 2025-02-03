@@ -4,7 +4,11 @@ import React from 'react'
 import { useSession, signOut } from "next-auth/react"
 import Image from 'next/image'
 
-function Profile() {
+interface ProfileProps {
+  showText?: boolean;
+}
+
+export default function Profile({ showText = true }: ProfileProps) {
   const { data: session, status } = useSession()
 
   const handleSignOut = () => {
@@ -48,15 +52,17 @@ function Profile() {
         ) : (
           <div className="bg-slate-600 rounded-full size-10"></div>
         )}
-        <div className="hidden lg:flex lg:flex-col text-left">
-          <span className="text-xl font-bold truncate max-w-[150px]">
-            {session.user?.name || 'Utilisateur'}
-          </span>
-          <span className="text-sm text-gray-500">Développeur</span>
-        </div>
+        {showText && (
+          <div className="flex flex-col text-left">
+            <span className="text-base font-bold truncate max-w-[150px]">
+              {session.user?.name || 'Profil'}
+            </span>
+            <span className="text-xs text-gray-500">
+              {session.user?.email || 'Développeur'}
+            </span>
+          </div>
+        )}
       </button>
     </div>
   )
 }
-
-export default Profile
