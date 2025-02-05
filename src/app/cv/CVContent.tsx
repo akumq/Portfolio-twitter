@@ -126,7 +126,7 @@ export default function CVContent({ initialData }: Props) {
                     {skill}
                   </span>
                 ))}
-              </div>
+              </div>m
               <div className="flex flex-wrap gap-2">
                 {initialData.languages.map((language, index) => (
                   <span key={index} className="bg-secondary/10 text-text_highlight px-3 py-1 rounded-full text-sm">

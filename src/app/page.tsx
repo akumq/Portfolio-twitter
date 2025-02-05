@@ -14,9 +14,9 @@ interface HomeProps {
 }
 
 export default async function Home({ searchParams }: HomeProps) {
-  const { language, type } = await searchParams;
-  const languageFilter = language as string;
-  const typeFilter = type as ProjectType | undefined;
+  const params = await searchParams;
+  const languageFilter = params.language as string;
+  const typeFilter = params.type as ProjectType | undefined;
 
   return (
     <main className="flex min-h-screen bg-background flex-row max-w-7xl mx-auto">

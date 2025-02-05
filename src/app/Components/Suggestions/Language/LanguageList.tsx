@@ -42,9 +42,11 @@ async function LanguageList() {
         acc[lang.name] = { count: 0, types: {} };
       }
       acc[lang.name].count++;
-      // Compter les occurrences de chaque type de projet
-      if (thread.types[0]) {
-        acc[lang.name].types[thread.types[0]] = (acc[lang.name].types[thread.types[0]] || 0) + 1;
+      
+      // Vérifier si le thread a au moins un type
+      if (thread.types.length > 0) {
+        const mainType = thread.types[0];
+        acc[lang.name].types[mainType] = (acc[lang.name].types[mainType] || 0) + 1;
       }
     });
     return acc;
@@ -55,8 +57,10 @@ async function LanguageList() {
     .sort(([, a], [, b]) => b.count - a.count)
     .map(([language, stats]) => {
       // Trouver le type de projet le plus courant pour ce langage
-      const mostCommonType = Object.entries(stats.types)
-        .sort(([, a], [, b]) => b - a)[0][0];
+      const typeEntries = Object.entries(stats.types);
+      const mostCommonType = typeEntries.length > 0 
+        ? typeEntries.sort(([, a], [, b]) => b - a)[0][0] 
+        : 'OTHER'; // Valeur par défaut si aucun type
 
       return {
         language,
