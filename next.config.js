@@ -8,7 +8,7 @@ const nextConfig = {
       }
     ],
     loader: 'custom',
-    loaderFile: './app/image-loader.ts',
+    loaderFile: './src/app/image-loader.ts',
   }
 }
 
