@@ -27,13 +27,16 @@ const PROJECT_TYPE_LABELS = {
 } as const;
 
 export default function ThreadHeader({ title, ownerAvatar, types, languages, githubUrl }: ThreadHeaderProps) {
+  const displayTitle = githubUrl ? githubUrl.split('/').pop() : title;
+  const username = githubUrl?.split('/').slice(-2)[0];
+
   return (
     <div className="flex flex-row">
       <div className="bg-slate-600 rounded-full size-11 m-3 flex items-center justify-center overflow-hidden relative">
         {ownerAvatar ? (
           <Image 
             src={ownerAvatar} 
-            alt="Owner avatar" 
+            alt="Avatar du propriétaire" 
             fill
             className="object-cover" 
           />
@@ -44,13 +47,13 @@ export default function ThreadHeader({ title, ownerAvatar, types, languages, git
         )}
       </div>
       <div className="flex flex-col justify-center">
-        <h3 className="text-xl">{githubUrl ? githubUrl.split('/').pop() : title}</h3>
+        <h3 className="text-xl">{displayTitle}</h3>
         <div className="flex items-center gap-2">
-          {githubUrl && (
+          {githubUrl && username && (
             <div className="inline-block">
               <GithubLink 
                 href={githubUrl} 
-                username={githubUrl.split('/').slice(-2)[0]} 
+                username={username} 
               />
             </div>
           )}

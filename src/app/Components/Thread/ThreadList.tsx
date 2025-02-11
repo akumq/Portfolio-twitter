@@ -2,6 +2,7 @@ import React from 'react'
 import prisma from '@/lib/prisma';
 import ThreadItem from './ThreadItem';
 import { ProjectType } from '@prisma/client';
+import { unstable_cache } from 'next/cache';
 
 interface ThreadListProps {
   className?: string;
@@ -9,36 +10,47 @@ interface ThreadListProps {
   type?: ProjectType;
 }
 
+const getThreads = unstable_cache(
+  async (language?: string, type?: ProjectType) => {
+    return await prisma.thread.findMany({
+      where: {
+        AND: [
+          language ? {
+            languages: {
+              some: {
+                name: language
+              }
+            }
+          } : {},
+          type ? {
+            types: {
+              has: type
+            }
+          } : {}
+        ]
+      },
+      include: {
+        languages: true,
+        comments: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+  },
+  ['threads'],
+  {
+    revalidate: 60,
+    tags: ['threads']
+  }
+);
+
 async function ThreadList({
   className,
   language,
   type
 }: ThreadListProps) {
-  const threads = await prisma.thread.findMany({
-    where: {
-      AND: [
-        language ? {
-          languages: {
-            some: {
-              name: language
-            }
-          }
-        } : {},
-        type ? {
-          types: {
-            has: type
-          }
-        } : {}
-      ]
-    },
-    include: {
-      languages: true,
-      comments: true
-    },
-    orderBy: {
-      createdAt: 'desc'
-    }
-  });
+  const threads = await getThreads(language, type);
 
   return (
     <div className={`bg-background p-0 w-full relative basis-2/3 border-none ${className}`}>

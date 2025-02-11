@@ -1,8 +1,6 @@
-import React from 'react'
-import Navigations from '../Components/Navigations/Navigations'
-import Profile from '../Components/Navigations/Profile'
-import SideBar from '../Components/Navigations/SideBar'
-import CVContent from './CVContent'
+import { Suspense } from 'react';
+import CVContent from './CVContent';
+import DesktopNav from '../Components/Navigations/DesktopNav';
 
 interface CVData {
   firstName: string;
@@ -170,22 +168,27 @@ async function getCVData(): Promise<CVData> {
 }
 
 export default async function CVPage() {
-  const cvData = await getCVData();
+  const initialData = await getCVData();
 
   return (
-    <main className="flex min-h-screen flex-row max-w-7xl mx-auto">
+    <main className="flex min-h-screen bg-background flex-row max-w-7xl mx-auto">
       {/* Barre latérale - masquée sur mobile */}
-      <SideBar className="fixed left-0 lg:left-auto lg:relative hidden sm:flex sm:w-[72px] md:w-[88px] lg:w-[275px] h-screen">
-        <Navigations />
-        <Profile />
-      </SideBar>
+      <Suspense fallback={<div className="hidden sm:flex sm:w-[72px] md:w-[88px] lg:w-[275px] h-screen bg-background animate-pulse" />}>
+        <DesktopNav />
+      </Suspense>
 
-      {/* Section principale - adaptée pour mobile */}
-      <section className="flex-1 min-w-0 border-x border-border_color ml-0 sm:ml-[72px] md:ml-[88px] lg:ml-0 mt-14 sm:mt-0">
-        <div className="w-full">
-          <CVContent initialData={cvData} />
-        </div>
+      {/* Section principale */}
+      <section className="flex-1 border-x border-border_color min-w-0 sm:ml-[72px] md:ml-[88px] lg:ml-0 pb-20 sm:pb-0 mt-14 sm:mt-0">
+        <Suspense fallback={
+          <div className="animate-pulse p-4 space-y-4">
+            <div className="h-48 bg-secondary rounded-lg" />
+            <div className="h-24 bg-secondary rounded-lg" />
+            <div className="h-36 bg-secondary rounded-lg" />
+          </div>
+        }>
+          <CVContent initialData={initialData} />
+        </Suspense>
       </section>
     </main>
-  )
+  );
 }

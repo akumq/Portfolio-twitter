@@ -1,7 +1,5 @@
 import React, { Suspense } from 'react';
-import Navigations from '../Components/Navigations/Navigations'
-import Profile from '../Components/Navigations/Profile'
-import SideBar from '../Components/Navigations/SideBar'
+import DesktopNav from '../Components/Navigations/DesktopNav'
 import Suggestions from '../Components/Suggestions/Suggestions'
 import Contact from '../Components/Suggestions/Contact'
 import LanguageList from '../Components/Suggestions/Language/LanguageList'
@@ -25,10 +23,7 @@ export default function ContactPage() {
   return (
     <main className="flex min-h-screen flex-row max-w-7xl mx-auto">
       {/* Barre latérale - masquée sur mobile */}
-      <SideBar className="fixed left-0 lg:left-auto lg:relative hidden sm:flex sm:w-[72px] md:w-[88px] lg:w-[275px] h-screen">
-        <Navigations />
-        <Profile />
-      </SideBar>
+      <DesktopNav />
 
       {/* Section principale - adaptée pour mobile */}
       <section className="flex-1 min-w-0 border-x border-border_color ml-0 sm:ml-[72px] md:ml-[88px] lg:ml-0 mt-14 sm:mt-0">
