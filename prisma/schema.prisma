@@ -35,6 +35,7 @@ model Thread {
   comments  Comment[]
   languages Language[]
   types     ProjectType[]
+  images    Image[]
 }
 
 model Comment {
@@ -112,4 +113,13 @@ model Message {
   updatedAt DateTime @updatedAt
   author    User?    @relation(fields: [authorId], references: [id])
   authorId  Int?
+}
+
+model Image {
+  id        String   @id @default(cuid())
+  data      Bytes
+  mimeType  String
+  createdAt DateTime @default(now())
+  threadId  Int?
+  thread    Thread?   @relation(fields: [threadId], references: [id])
 }

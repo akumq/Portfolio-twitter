@@ -51,7 +51,11 @@ export default async function CommentList({ threadId }: { threadId: number }) {
               </p>
             </div>
           </div>
-          <ThreadContent content={comment.content} maxLength={200} />
+          <ThreadContent 
+            content={comment.content} 
+            maxLength={200} 
+            threadId={comment.threadId} 
+          />
         </div>
       ))}
     </div>

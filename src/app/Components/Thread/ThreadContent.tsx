@@ -1,34 +1,68 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 interface ThreadContentProps {
   content: string;
-  imageUrl?: string | null;
   maxLength?: number;
+  threadId: number;
+  imageUrl?: string | null;
 }
 
-export default function ThreadContent({ content, imageUrl, maxLength }: ThreadContentProps) {
-  const truncatedContent = maxLength && content.length > maxLength 
-    ? `${content.slice(0, maxLength)}...`
+export default function ThreadContent({ content, maxLength, threadId, imageUrl }: ThreadContentProps) {
+  const [images, setImages] = useState<string[]>([]);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const displayedContent = maxLength && !isExpanded 
+    ? content.slice(0, maxLength) + (content.length > maxLength ? '...' : '')
     : content;
+
+  useEffect(() => {
+    const loadImages = async () => {
+      const response = await fetch(`/api/images?threadId=${threadId}`);
+      const data = await response.json();
+      setImages(data.images.map((img: { id: string }) => `/api/images/${img.id}`));
+    };
+    loadImages();
+  }, [threadId]);
 
   return (
     <div className="px-4 py-2">
       <p className="text-sm text-text_secondary whitespace-pre-wrap break-words">
-        {truncatedContent}
+        {displayedContent}
+        {maxLength && content.length > maxLength && !isExpanded && (
+          <button 
+            onClick={() => setIsExpanded(true)}
+            className="text-text_highlight ml-2 hover:underline"
+          >
+            Lire plus
+          </button>
+        )}
       </p>
-      {imageUrl && (
-        <div className="mt-3 relative w-full h-64">
+      <div className="grid grid-cols-2 gap-4 mt-4">
+        {imageUrl && (
           <Image 
             src={imageUrl}
-            alt="Aperçu du projet"
-            fill
-            className="rounded-lg object-cover"
+            alt="Image principale"
+            width={600}
+            height={400}
+            className="rounded-lg object-cover h-48 w-full col-span-2"
+            loader={({ src }) => src}
           />
-        </div>
-      )}
+        )}
+        {images.map((url, index) => (
+          <Image 
+            key={index}
+            src={url}
+            alt={`Image ${index + 1}`}
+            width={600}
+            height={400}
+            className="rounded-lg object-cover h-48 w-full"
+            loader={({ src }) => src}
+          />
+        ))}
+      </div>
     </div>
   );
 } 

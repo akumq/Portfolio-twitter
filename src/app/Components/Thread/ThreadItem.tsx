@@ -77,6 +77,7 @@ async function ThreadItem({id} : {id: number}) {
                         <ThreadContent 
                             content={thread.content}
                             imageUrl={thread.imageUrl}
+                            threadId={thread.id}
                         />
                     </Suspense>
 
