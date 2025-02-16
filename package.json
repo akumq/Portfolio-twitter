@@ -12,6 +12,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@auth/core": "^0.34.2",
     "@next-auth/prisma-adapter": "^1.0.7",
     "@octokit/rest": "^21.1.0",
     "@prisma/client": "^6.3.0",
@@ -21,6 +22,8 @@
     "@vercel/next": "^4.5.0",
     "@vercel/speed-insights": "^1.1.0",
     "date-fns": "^4.1.0",
+    "framer-motion": "^12.4.2",
+    "hls.js": "^1.5.20",
     "jsdom": "^26.0.0",
     "next": "^15.1.4",
     "next-auth": "^4.24.5",

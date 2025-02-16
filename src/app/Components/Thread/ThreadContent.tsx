@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
+import MediaModal from './MediaModal';
+import { useRouter } from 'next/navigation';
+import { MediaType } from '@prisma/client';
 
 interface ThreadContentProps {
   content: string;
@@ -10,59 +12,114 @@ interface ThreadContentProps {
   imageUrl?: string | null;
 }
 
-export default function ThreadContent({ content, maxLength, threadId, imageUrl }: ThreadContentProps) {
-  const [images, setImages] = useState<string[]>([]);
-  const [isExpanded, setIsExpanded] = useState(false);
+interface Media {
+  id: string;
+  url: string;
+  type: MediaType;
+  alt?: string;
+  isMain: boolean;
+  thumbnail?: {
+    id: string;
+    url: string;
+  };
+  mimeType?: string;
+}
 
+interface ThreadTextProps {
+  content: string;
+  maxLength?: number;
+  onExpand: () => void;
+  isExpanded: boolean;
+  threadId: number;
+}
+
+function ThreadText({ content, maxLength, onExpand, isExpanded, threadId }: ThreadTextProps) {
+  const router = useRouter();
   const displayedContent = maxLength && !isExpanded 
     ? content.slice(0, maxLength) + (content.length > maxLength ? '...' : '')
     : content;
 
-  useEffect(() => {
-    const loadImages = async () => {
-      const response = await fetch(`/api/images?threadId=${threadId}`);
-      const data = await response.json();
-      setImages(data.images.map((img: { id: string }) => `/api/images/${img.id}`));
-    };
-    loadImages();
-  }, [threadId]);
-
   return (
     <div className="px-4 py-2">
-      <p className="text-sm text-text_secondary whitespace-pre-wrap break-words">
-        {displayedContent}
+      <p className="text-[15px] leading-5 text-gray-200 font-regular whitespace-pre-wrap break-words">
+        <span 
+          className="hover:text-gray-300 cursor-pointer"
+          onClick={() => router.push(`/thread/${threadId}`)}
+        >
+          {displayedContent}
+        </span>
         {maxLength && content.length > maxLength && !isExpanded && (
           <button 
-            onClick={() => setIsExpanded(true)}
-            className="text-text_highlight ml-2 hover:underline"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onExpand();
+            }}
+            className="text-blue-500 hover:text-blue-400 ml-1 transition-colors"
           >
-            Lire plus
+            Voir plus
           </button>
         )}
       </p>
-      <div className="grid grid-cols-2 gap-4 mt-4">
-        {imageUrl && (
-          <Image 
-            src={imageUrl}
-            alt="Image principale"
-            width={600}
-            height={400}
-            className="rounded-lg object-cover h-48 w-full col-span-2"
-            loader={({ src }) => src}
-          />
-        )}
-        {images.map((url, index) => (
-          <Image 
-            key={index}
-            src={url}
-            alt={`Image ${index + 1}`}
-            width={600}
-            height={400}
-            className="rounded-lg object-cover h-48 w-full"
-            loader={({ src }) => src}
-          />
-        ))}
-      </div>
     </div>
+  );
+}
+
+export default function ThreadContent({ content, maxLength, threadId, imageUrl }: ThreadContentProps) {
+  const [medias, setMedias] = useState<Media[]>([]);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+
+  useEffect(() => {
+    const loadMedias = async () => {
+      try {
+        const response = await fetch(`/api/medias?threadId=${threadId}`);
+        if (!response.ok) throw new Error('Erreur lors du chargement des médias');
+        const data = await response.json();
+        setMedias(data.medias);
+      } catch (error) {
+        console.error('Erreur lors du chargement des médias:', error);
+      }
+    };
+    loadMedias();
+  }, [threadId]);
+
+  const handleNext = () => {
+    setCurrentMediaIndex((prev) => 
+      prev < medias.length - 1 ? prev + 1 : prev
+    );
+  };
+
+  const handlePrevious = () => {
+    setCurrentMediaIndex((prev) => 
+      prev > 0 ? prev - 1 : prev
+    );
+  };
+
+  // Combiner l'image principale avec les autres médias pour le modal
+  const allMedias = imageUrl 
+    ? [{ id: 'main', url: imageUrl, type: 'IMAGE' as const, isMain: true }, ...medias]
+    : medias;
+
+  return (
+    <>
+      <ThreadText 
+        content={content}
+        maxLength={maxLength}
+        onExpand={() => setIsExpanded(true)}
+        isExpanded={isExpanded}
+        threadId={threadId}
+      />
+
+      <MediaModal
+        medias={allMedias}
+        currentIndex={currentMediaIndex}
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onNext={handleNext}
+        onPrevious={handlePrevious}
+      />
+    </>
   );
 } 

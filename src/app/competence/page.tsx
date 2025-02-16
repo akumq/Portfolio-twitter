@@ -107,7 +107,7 @@ export default function CompetencePage() {
 
       {/* Section principale - adaptée pour mobile */}
       <section className="flex-1 min-w-0 border-x border-border_color ml-0 sm:ml-[72px] md:ml-[88px] lg:ml-0 mt-14 sm:mt-0">
-        <div className="w-full pb-20 sm:pb-0">
+        <div className="w-full pb-20 sm:pb-0 h-screen overflow-y-auto">
           <h1 className="text-2xl font-bold p-4 mb-6">Compétences</h1>
           <div className="space-y-8 p-4">
             {Object.entries(skills).map(([key, category]) => (
