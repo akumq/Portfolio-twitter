@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { mediaId } = await request.json() as RegenerateMediaRequest;
-    const baseUrl = request.nextUrl.origin;
+    const baseUrl = "https://sowamadou.com";
 
     if (!mediaId) {
       return NextResponse.json(
