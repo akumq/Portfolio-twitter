@@ -63,6 +63,7 @@ export default function MediaModal({
             onPlayingChange={(isPlaying) => 
               onVideoStateChange?.(media.id, { ...videoState, isPlaying })
             }
+            isInModal={true}
           />
         );
       case 'AUDIO':

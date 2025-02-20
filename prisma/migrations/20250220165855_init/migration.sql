@@ -1,4 +1,7 @@
 -- CreateEnum
+CREATE TYPE "MediaType" AS ENUM ('IMAGE', 'VIDEO', 'GIF', 'AUDIO', 'THUMBNAIL');
+
+-- CreateEnum
 CREATE TYPE "ProjectType" AS ENUM ('WEB_APP', 'MOBILE_APP', 'DESKTOP_APP', 'DATA_SCIENCE', 'MACHINE_LEARNING', 'DIGITAL_IMAGING', 'GAME', 'API', 'LIBRARY', 'CLI', 'OTHER');
 
 -- CreateTable
@@ -98,14 +101,21 @@ CREATE TABLE "Message" (
 );
 
 -- CreateTable
-CREATE TABLE "Image" (
+CREATE TABLE "Media" (
     "id" TEXT NOT NULL,
-    "data" BYTEA NOT NULL,
+    "type" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "alt" TEXT,
     "mimeType" TEXT NOT NULL,
+    "size" INTEGER NOT NULL,
+    "isMain" BOOLEAN NOT NULL DEFAULT false,
+    "fileName" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "threadId" INTEGER,
+    "thumbnailId" TEXT,
 
-    CONSTRAINT "Image_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Media_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -135,13 +145,19 @@ CREATE UNIQUE INDEX "VerificationToken_identifier_token_key" ON "VerificationTok
 CREATE UNIQUE INDEX "Language_name_key" ON "Language"("name");
 
 -- CreateIndex
+CREATE INDEX "Media_threadId_idx" ON "Media"("threadId");
+
+-- CreateIndex
+CREATE INDEX "Media_thumbnailId_idx" ON "Media"("thumbnailId");
+
+-- CreateIndex
 CREATE INDEX "_LanguageToThread_B_index" ON "_LanguageToThread"("B");
 
 -- AddForeignKey
-ALTER TABLE "Comment" ADD CONSTRAINT "Comment_threadId_fkey" FOREIGN KEY ("threadId") REFERENCES "Thread"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Comment" ADD CONSTRAINT "Comment_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_threadId_fkey" FOREIGN KEY ("threadId") REFERENCES "Thread"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -153,7 +169,10 @@ ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId"
 ALTER TABLE "Message" ADD CONSTRAINT "Message_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Image" ADD CONSTRAINT "Image_threadId_fkey" FOREIGN KEY ("threadId") REFERENCES "Thread"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Media" ADD CONSTRAINT "Media_threadId_fkey" FOREIGN KEY ("threadId") REFERENCES "Thread"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Media" ADD CONSTRAINT "Media_thumbnailId_fkey" FOREIGN KEY ("thumbnailId") REFERENCES "Media"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_LanguageToThread" ADD CONSTRAINT "_LanguageToThread_A_fkey" FOREIGN KEY ("A") REFERENCES "Language"("id") ON DELETE CASCADE ON UPDATE CASCADE;

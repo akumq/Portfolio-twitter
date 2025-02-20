@@ -11,20 +11,30 @@ export async function GET(
     const params = await props.params;
     const thread = await prisma.thread.findUnique({
       where: { id: Number(params.id) },
-      include: {
-        comments: true,
-        languages: true,
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        github: true,
+        types: true,
+        createdAt: true,
+        languages: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
         medias: {
           select: {
             id: true,
-            url: true,
+            fileName: true,
             type: true,
             alt: true,
             isMain: true,
             thumbnail: {
               select: {
                 id: true,
-                url: true
+                fileName: true
               }
             }
           }
@@ -43,7 +53,7 @@ export async function GET(
   } catch (error) {
     console.error('Erreur lors de la récupération du thread:', error);
     return NextResponse.json(
-      { error: 'Erreur serveur' },
+      { error: 'Une erreur est survenue' },
       { status: 500 }
     );
   }
@@ -54,7 +64,6 @@ export async function PUT(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
-    const params = await props.params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.isAdmin) {
       return NextResponse.json(
@@ -63,14 +72,7 @@ export async function PUT(
       );
     }
 
-    const threadId = Number(params.id);
-    if (isNaN(threadId)) {
-      return NextResponse.json(
-        { error: 'ID de thread invalide' },
-        { status: 400 }
-      );
-    }
-
+    const params = await props.params;
     const data = await request.json();
     const { title, content, github, types, languages } = data;
 
@@ -82,28 +84,16 @@ export async function PUT(
       );
     }
 
-    // Vérifier si le thread existe
-    const existingThread = await prisma.thread.findUnique({
-      where: { id: threadId }
-    });
-
-    if (!existingThread) {
-      return NextResponse.json(
-        { error: 'Thread non trouvé' },
-        { status: 404 }
-      );
-    }
-
     const thread = await prisma.thread.update({
-      where: { id: threadId },
+      where: { id: Number(params.id) },
       data: {
         title: title.trim(),
         content: content.trim(),
         github: github?.trim() || null,
         types: types || [],
         languages: {
-          set: languages?.map((id: number) => ({ id })) || [],
-        },
+          set: languages?.map((id: number) => ({ id })) || []
+        }
       },
       select: {
         id: true,
@@ -111,7 +101,6 @@ export async function PUT(
         content: true,
         github: true,
         types: true,
-        imageUrl: true,
         createdAt: true,
         languages: {
           select: {
@@ -122,17 +111,17 @@ export async function PUT(
         medias: {
           select: {
             id: true,
-            url: true,
+            fileName: true,
             type: true,
             alt: true,
             isMain: true,
-            createdAt: true,
-            mimeType: true
-          },
-          orderBy: [
-            { isMain: 'desc' },
-            { createdAt: 'asc' }
-          ]
+            thumbnail: {
+              select: {
+                id: true,
+                fileName: true
+              }
+            }
+          }
         }
       }
     });
@@ -141,7 +130,7 @@ export async function PUT(
   } catch (error) {
     console.error('Erreur lors de la mise à jour du thread:', error);
     return NextResponse.json(
-      { error: 'Erreur serveur' },
+      { error: 'Une erreur est survenue' },
       { status: 500 }
     );
   }
@@ -152,7 +141,6 @@ export async function DELETE(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
-    const params = await props.params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.isAdmin) {
       return NextResponse.json(
@@ -160,60 +148,17 @@ export async function DELETE(
         { status: 401 }
       );
     }
-    
-    const threadId = Number(params.id);
-    if (isNaN(threadId)) {
-      return NextResponse.json(
-        { error: 'ID de thread invalide' },
-        { status: 400 }
-      );
-    }
 
-    // Vérifier si le thread existe
-    const existingThread = await prisma.thread.findUnique({
-      where: { id: threadId }
-    });
-
-    if (!existingThread) {
-      return NextResponse.json(
-        { error: 'Thread non trouvé' },
-        { status: 404 }
-      );
-    }
-
-    // Supprimer les commentaires
-    await prisma.comment.deleteMany({
-      where: { threadId }
-    });
-
-    // Supprimer les relations avec les langages
-    await prisma.thread.update({
-      where: { id: threadId },
-      data: {
-        languages: {
-          set: [],
-        },
-      },
-    });
-
-    // Supprimer les médias associés
-    await prisma.media.deleteMany({
-      where: { threadId }
-    });
-
-    // Supprimer le thread
+    const params = await props.params;
     await prisma.thread.delete({
-      where: { id: threadId },
+      where: { id: Number(params.id) }
     });
 
-    return NextResponse.json({ 
-      success: true,
-      message: 'Thread supprimé avec succès'
-    });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Erreur lors de la suppression du thread:', error);
     return NextResponse.json(
-      { error: 'Erreur serveur' },
+      { error: 'Une erreur est survenue' },
       { status: 500 }
     );
   }

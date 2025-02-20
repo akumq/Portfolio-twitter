@@ -64,7 +64,7 @@ export default function ThreadItem({ id, initialData }: ThreadItemProps) {
     stars: 0,
     ownerAvatar: ''
   });
-  const [modalOpen, setModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [videoTimestamps, setVideoTimestamps] = useState<Record<string, number>>({});
   const [videoStates, setVideoStates] = useState<Record<string, { isPlaying: boolean; currentTime: number }>>({});
@@ -115,7 +115,7 @@ export default function ThreadItem({ id, initialData }: ThreadItemProps) {
 
   const handleMediaClick = (index: number) => {
     setCurrentMediaIndex(index);
-    setModalOpen(true);
+    setIsModalOpen(true);
     
     // Si c'est une vidéo, on la démarre automatiquement
     const media = allMedias[index];
@@ -226,6 +226,7 @@ export default function ThreadItem({ id, initialData }: ThreadItemProps) {
               onVideoTimeUpdate={handleVideoTimeUpdate}
               videoStates={videoStates}
               onVideoStateChange={handleVideoStateChange}
+              isModalOpen={isModalOpen}
             />
           </div>
           
@@ -242,9 +243,9 @@ export default function ThreadItem({ id, initialData }: ThreadItemProps) {
       <MediaModal
         medias={allMedias}
         currentIndex={currentMediaIndex}
-        isOpen={modalOpen}
+        isOpen={isModalOpen}
         onClose={() => {
-          setModalOpen(false);
+          setIsModalOpen(false);
           // Arrêter la vidéo actuelle si c'en est une
           const currentMedia = allMedias[currentMediaIndex];
           if (currentMedia.type === 'VIDEO') {

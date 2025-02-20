@@ -13,7 +13,6 @@ export async function GET() {
         content: true,
         github: true,
         types: true,
-        imageUrl: true,
         createdAt: true,
         languages: {
           select: {
@@ -22,46 +21,21 @@ export async function GET() {
           }
         },
         medias: {
+          where: {
+            isMain: true
+          },
           select: {
             id: true,
-            url: true,
+            fileName: true,
             type: true,
             alt: true,
             isMain: true,
-            mimeType: true,
             thumbnail: {
               select: {
                 id: true,
-                url: true
-              }
-            },
-            createdAt: true
-          },
-          orderBy: [
-            { isMain: 'desc' },
-            { createdAt: 'asc' }
-          ]
-        },
-        comments: {
-          select: {
-            id: true,
-            content: true,
-            createdAt: true,
-            author: {
-              select: {
-                id: true,
-                name: true,
-                image: true
+                fileName: true
               }
             }
-          },
-          orderBy: {
-            createdAt: 'desc'
-          }
-        },
-        _count: {
-          select: {
-            comments: true
           }
         }
       },
@@ -70,16 +44,11 @@ export async function GET() {
       }
     });
 
-    // Vérifier et logger les médias pour le débogage
-    threads.forEach(thread => {
-      console.log(`Thread ${thread.id} medias:`, thread.medias);
-    });
-
     return NextResponse.json(threads);
   } catch (error) {
     console.error('Erreur lors de la récupération des threads:', error);
     return NextResponse.json(
-      { error: 'Erreur serveur' },
+      { error: 'Une erreur est survenue' },
       { status: 500 }
     );
   }
@@ -124,7 +93,6 @@ export async function POST(request: NextRequest) {
         content: true,
         github: true,
         types: true,
-        imageUrl: true,
         createdAt: true,
         languages: {
           select: {
@@ -135,7 +103,6 @@ export async function POST(request: NextRequest) {
         medias: {
           select: {
             id: true,
-            url: true,
             type: true,
             alt: true,
             isMain: true,

@@ -4,6 +4,7 @@ import "./globals.css";
 import AuthProvider from "@/app/Components/AuthProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import MobileNav from './Components/Navigations/MobileNav'
+import { VideoPlayerProvider } from '@/contexts/VideoPlayerContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,7 +31,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <VideoPlayerProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </VideoPlayerProvider>
         <SpeedInsights />
         <MobileNav />
       </body>

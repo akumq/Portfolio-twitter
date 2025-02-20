@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { createThumbnail, createVideoWithThumbnail } from '@/services/media';
+import { MediaManager } from '@/services/media-manager';
 
 interface FileError {
   code: string;
@@ -22,7 +22,6 @@ export async function POST(request: Request) {
     const threadId = formData.get('threadId') as string | null;
     const isMain = formData.get('isMain') === 'true';
     const alt = formData.get('alt') as string | null;
-    const baseUrl = new URL(request.url).origin;
 
     if (!file) {
       return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400 });
@@ -60,31 +59,25 @@ export async function POST(request: Request) {
         );
       }
 
-      // Créer d'abord la miniature
-      const thumbnailMedia = await createThumbnail(thumbnail, {
-        threadId: threadId ? Number(threadId) : undefined,
-        baseUrl,
-        alt: alt || undefined
-      });
-
-      // Puis créer la vidéo avec la référence à la miniature
-      const videoMedia = await createVideoWithThumbnail(file, thumbnailMedia.id, {
-        threadId: threadId ? Number(threadId) : undefined,
-        baseUrl,
-        isMain,
-        alt: alt || undefined
-      });
+      const { video, thumbnail: thumbnailMedia } = await MediaManager.createVideoWithThumbnail(
+        file,
+        thumbnail,
+        {
+          threadId: threadId ? Number(threadId) : undefined,
+          isMain,
+          alt: alt || undefined
+        }
+      );
 
       return NextResponse.json({ 
-        id: videoMedia.id,
+        id: video.id,
         thumbnailId: thumbnailMedia.id
       });
     }
 
-    // Pour les autres types de médias, utiliser createThumbnail
-    const media = await createThumbnail(file, {
+    // Pour les autres types de médias
+    const media = await MediaManager.createMedia(file, {
       threadId: threadId ? Number(threadId) : undefined,
-      baseUrl,
       isMain,
       alt: alt || undefined
     });

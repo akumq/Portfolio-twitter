@@ -11,7 +11,6 @@ model Thread {
   id        Int           @id @default(autoincrement())
   title     String
   content   String        @db.Text
-  imageUrl  String?       // URL de l'image principale (couverture)
   github    String?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
@@ -99,27 +98,23 @@ model Message {
 }
 
 model Media {
-  id          String     @id @default(cuid())
-  data        Bytes
+  id          String   @id
+  type        String
+  alt         String?
   mimeType    String
-  url         String?    // URL générée pour le média
-  type        MediaType  // Type de média (IMAGE, VIDEO, GIF, etc.)
-  width       Int?       // Largeur du média en pixels
-  height      Int?       // Hauteur du média en pixels
-  duration    Float?     // Durée en secondes (pour les vidéos)
-  size        Int       // Taille du fichier en bytes
-  alt         String?    // Texte alternatif pour l'accessibilité
-  createdAt   DateTime   @default(now())
-  // Relations pour les threads (seulement pour les médias non-thumbnails)
-  threadId    Int?      @map("thread_id")
-  thread      Thread?   @relation(fields: [threadId], references: [id])
-  isMain      Boolean   @default(false)
-  // Relations pour les miniatures
-  video       Media?    @relation("VideoThumbnail")
-  thumbnail   Media?    @relation("VideoThumbnail", fields: [thumbnailId], references: [id], onDelete: SetNull)
-  thumbnailId String?   @unique
+  size        Int
+  isMain      Boolean  @default(false)
+  fileName    String   // Nouveau champ pour stocker le nom du fichier dans Minio
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  threadId    Int?
+  thread      Thread?  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  thumbnailId String?
+  thumbnail   Media?   @relation("ThumbnailToVideo", fields: [thumbnailId], references: [id])
+  videos      Media[]  @relation("ThumbnailToVideo")
 
   @@index([threadId])
+  @@index([thumbnailId])
 }
 
 enum MediaType {

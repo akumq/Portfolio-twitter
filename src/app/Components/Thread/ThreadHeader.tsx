@@ -25,7 +25,7 @@ const PROJECT_TYPE_LABELS = {
   OTHER: 'Autre'
 } as const;
 
-export default function ThreadHeader({ title, ownerAvatar, types, languages, githubUrl }: ThreadHeaderProps) {
+export default function ThreadHeader({ title, ownerAvatar, types = [], languages = [], githubUrl }: ThreadHeaderProps) {
   const displayTitle = githubUrl ? githubUrl.split('/').pop() : title;
 
   return (

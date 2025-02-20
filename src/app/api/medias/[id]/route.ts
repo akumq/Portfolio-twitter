@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getMedia } from '@/services/media';
+import { MediaManager } from '@/services/media-manager';
 
 export async function GET(
   request: NextRequest,
@@ -8,32 +8,23 @@ export async function GET(
 ) {
   try {
     const params = await props.params;
-    const media = await getMedia(params.id);
+    const media = await MediaManager.getMedia(params.id);
 
-    if (!media || !media.data) {
+    if (!media) {
       return NextResponse.json(
         { error: 'Média non trouvé' },
         { status: 404 }
       );
     }
 
-    // Convertir le Buffer en Uint8Array pour le streaming
-    const buffer = media.data as unknown as Buffer;
-    const stream = new ReadableStream({
-      start(controller) {
-        controller.enqueue(buffer);
-        controller.close();
-      },
-    });
+    // Pour les vidéos, générer une URL présignée
+    if (media.type === 'VIDEO') {
+      const presignedUrl = await MediaManager.generatePresignedUrl(media.id);
+      return NextResponse.redirect(presignedUrl);
+    }
 
-    // Retourner la réponse avec le bon type MIME
-    return new NextResponse(stream, {
-      headers: {
-        'Content-Type': media.mimeType,
-        'Content-Length': media.size.toString(),
-        'Cache-Control': 'public, max-age=31536000', // Cache pour 1 an
-      },
-    });
+    // Pour les autres types, rediriger vers l'URL directe
+    return NextResponse.redirect(media.url);
   } catch (error) {
     console.error('Erreur lors de la récupération du média:', error);
     return NextResponse.json(

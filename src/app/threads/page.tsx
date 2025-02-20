@@ -2,6 +2,7 @@ import { ProjectType } from '@prisma/client';
 import Link from 'next/link';
 import prisma from '@/lib/prisma';
 import Image from 'next/image';
+import { MediaManager } from '@/services/media-manager';
 
 interface Language {
   id: number;
@@ -10,7 +11,7 @@ interface Language {
 
 interface Media {
   id: string;
-  url: string | null;
+  url: string;
   alt: string | null;
   isMain: boolean;
 }
@@ -31,15 +32,50 @@ export const dynamic = 'force-dynamic';
 async function getThreads(): Promise<Thread[]> {
   try {
     const threads = await prisma.thread.findMany({
-      include: {
-        languages: true,
-        medias: true,
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        github: true,
+        types: true,
+        createdAt: true,
+        languages: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
+        medias: {
+          select: {
+            id: true,
+            fileName: true,
+            type: true,
+            alt: true,
+            isMain: true,
+            thumbnail: {
+              select: {
+                id: true,
+                fileName: true
+              }
+            }
+          }
+        }
       },
       orderBy: {
-        createdAt: 'desc',
-      },
+        createdAt: 'desc'
+      }
     });
-    return threads;
+
+    // Transformer les données pour ajouter les URLs
+    return threads.map(thread => ({
+      ...thread,
+      medias: thread.medias.map(media => ({
+        id: media.id,
+        url: MediaManager.getMediaUrl(media.fileName),
+        alt: media.alt,
+        isMain: media.isMain
+      }))
+    }));
   } catch (error) {
     console.error('Erreur lors de la récupération des threads:', error);
     return [];

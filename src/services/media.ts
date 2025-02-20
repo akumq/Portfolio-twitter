@@ -1,9 +1,6 @@
 import prisma from '@/lib/prisma';
 import { MediaType, Media } from '@prisma/client';
-
-function generateMediaUrl(mediaId: string, baseUrl: string) {
-  return `${baseUrl}/api/medias/${mediaId}`;
-}
+import { uploadFile, deleteFile } from './minio';
 
 async function generateMediaId(): Promise<string> {
   const timestamp = Date.now().toString(36);
@@ -19,84 +16,94 @@ function detectMediaType(mimeType: string): MediaType {
   return 'IMAGE';
 }
 
-interface MediaOptions {
+export interface MediaOptions {
   threadId?: number;
-  baseUrl: string;
   isMain?: boolean;
   alt?: string;
 }
 
+export async function getMedia(mediaId: string): Promise<Media | null> {
+  return await prisma.media.findUnique({
+    where: { id: mediaId },
+    include: {
+      thumbnail: true
+    }
+  });
+}
+
 export async function createThumbnail(file: File, options: MediaOptions): Promise<Media> {
-  try {
-    const { baseUrl, alt = '', isMain = false, threadId } = options;
-    const mediaId = await generateMediaId();
-    const buffer = Buffer.from(await file.arrayBuffer());
+  const { threadId, isMain = false, alt = '' } = options;
+  const mediaId = await generateMediaId();
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const fileName = `${mediaId}-${file.name}`;
+  const type = detectMediaType(file.type);
 
-    const mediaType = detectMediaType(file.type);
+  // Upload vers Minio
+  await uploadFile(buffer, fileName, file.type);
 
-    const media = await prisma.media.create({
-      data: {
-        id: mediaId,
-        type: mediaType,
-        url: generateMediaUrl(mediaId, baseUrl),
-        alt,
-        data: buffer,
-        mimeType: file.type,
-        size: buffer.length,
-        isMain,
-        ...(threadId ? { threadId } : {})
-      }
-    });
-
-    return media;
-  } catch (error) {
-    console.error('Erreur lors de la création du média:', error);
-    throw new Error('Erreur lors de la création du média');
-  }
+  // Enregistrement des métadonnées dans la base de données
+  return await prisma.media.create({
+    data: {
+      id: mediaId,
+      type,
+      alt,
+      mimeType: file.type,
+      size: buffer.length,
+      isMain,
+      fileName,
+      ...(threadId ? { threadId } : {})
+    }
+  });
 }
 
 export async function createVideoWithThumbnail(file: File, thumbnailId: string, options: MediaOptions): Promise<Media> {
-  try {
-    const { threadId, baseUrl, isMain = false, alt = '' } = options;
-    const mediaId = await generateMediaId();
-    const buffer = Buffer.from(await file.arrayBuffer());
+  const { threadId, isMain = false, alt = '' } = options;
+  const mediaId = await generateMediaId();
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const fileName = `${mediaId}-${file.name}`;
 
-    const thumbnail = await prisma.media.findUnique({
-      where: { id: thumbnailId }
-    });
+  const thumbnail = await prisma.media.findUnique({
+    where: { id: thumbnailId }
+  });
 
-    if (!thumbnail) {
-      throw new Error('La miniature spécifiée n\'existe pas');
-    }
-
-    const media = await prisma.media.create({
-      data: {
-        id: mediaId,
-        type: 'VIDEO',
-        url: generateMediaUrl(mediaId, baseUrl),
-        alt,
-        data: buffer,
-        mimeType: file.type,
-        size: buffer.length,
-        isMain,
-        ...(threadId ? { threadId } : {}),
-        thumbnailId
-      },
-      include: {
-        thumbnail: true
-      }
-    });
-
-    return media;
-  } catch (error) {
-    console.error('Erreur lors de la création de la vidéo:', error);
-    throw new Error('Erreur lors de la création de la vidéo');
+  if (!thumbnail) {
+    throw new Error('La miniature spécifiée n\'existe pas');
   }
+
+  // Upload vers Minio
+  await uploadFile(buffer, fileName, file.type);
+
+  // Enregistrement des métadonnées dans la base de données
+  return await prisma.media.create({
+    data: {
+      id: mediaId,
+      type: 'VIDEO',
+      alt,
+      mimeType: file.type,
+      size: buffer.length,
+      isMain,
+      fileName,
+      thumbnailId,
+      ...(threadId ? { threadId } : {})
+    }
+  });
 }
 
-export async function getMedia(id: string): Promise<Media | null> {
-  return prisma.media.findUnique({
-    where: { id }
+export async function deleteMedia(mediaId: string): Promise<void> {
+  const media = await prisma.media.findUnique({
+    where: { id: mediaId }
+  });
+
+  if (!media || !media.fileName) {
+    throw new Error('Média non trouvé');
+  }
+
+  // Supprimer le fichier de Minio
+  await deleteFile(media.fileName);
+
+  // Supprimer les métadonnées de la base de données
+  await prisma.media.delete({
+    where: { id: mediaId }
   });
 }
 

@@ -33,7 +33,13 @@ interface ThreadTextProps {
   threadId: number;
 }
 
-function ThreadText({ content, maxLength, onExpand, isExpanded, threadId }: ThreadTextProps) {
+function ThreadText({ 
+  content = '', 
+  maxLength, 
+  onExpand, 
+  isExpanded, 
+  threadId 
+}: ThreadTextProps) {
   const router = useRouter();
   const displayedContent = maxLength && !isExpanded 
     ? content.slice(0, maxLength) + (content.length > maxLength ? '...' : '')
@@ -73,6 +79,7 @@ export default function ThreadContent({ content, maxLength, threadId, imageUrl }
 
   useEffect(() => {
     const loadMedias = async () => {
+      if (!threadId) return;
       try {
         const response = await fetch(`/api/medias?threadId=${threadId}`);
         if (!response.ok) throw new Error('Erreur lors du chargement des médias');

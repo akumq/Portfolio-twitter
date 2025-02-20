@@ -23,6 +23,7 @@ interface ThreadMediaProps {
   onVideoTimeUpdate?: (mediaId: string, time: number) => void;
   videoStates?: Record<string, { isPlaying: boolean; currentTime: number }>;
   onVideoStateChange?: (mediaId: string, state: { isPlaying: boolean; currentTime: number }) => void;
+  isModalOpen?: boolean;
 }
 
 export default function ThreadMedia({ 
@@ -32,7 +33,8 @@ export default function ThreadMedia({
   videoTimestamps = {},
   onVideoTimeUpdate,
   videoStates = {},
-  onVideoStateChange
+  onVideoStateChange,
+  isModalOpen = false
 }: ThreadMediaProps) {
   const totalMedias = (imageUrl ? 1 : 0) + medias.filter(m => !m.isMain).length;
 
@@ -42,9 +44,30 @@ export default function ThreadMedia({
     const aspectRatio = totalMedias === 1 ? 'aspect-video' : 'aspect-square';
 
     if (isVideo) {
+      if (isModalOpen && media.thumbnail) {
+        return (
+          <div className="relative aspect-video">
+            <Image
+              src={media.thumbnail.url}
+              alt={media.alt || ''}
+              fill
+              className="object-cover rounded-lg"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </div>
+        );
+      }
+
       const videoState = videoStates[media.id] || { isPlaying: false, currentTime: 0 };
       return (
-        <div className={`relative w-full ${aspectRatio}`}>
+        <div 
+          className={`relative w-full ${aspectRatio}`}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            // Ne pas ouvrir le modal lors du clic sur la vidéo
+          }}
+        >
           <VideoPlayer
             src={media.url}
             poster={media.thumbnail?.url}
@@ -52,12 +75,23 @@ export default function ThreadMedia({
             title={media.alt || `Vidéo ${index + 1}`}
             currentTime={videoTimestamps[media.id] || 0}
             onTimeUpdate={(time) => onVideoTimeUpdate?.(media.id, time)}
-            onMediaClick={() => onMediaClick(imageUrl ? index + 1 : index)}
+            onMediaClick={() => onMediaClick(index)} // Ouvre le modal seulement lors du clic sur le bouton plein écran
             isPlaying={videoState.isPlaying}
             onPlayingChange={(isPlaying) => 
               onVideoStateChange?.(media.id, { ...videoState, isPlaying })
             }
           />
+          <button 
+            className="absolute top-2 right-2 p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMediaClick(index);
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-white">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+            </svg>
+          </button>
         </div>
       );
     }
@@ -149,10 +183,10 @@ export default function ThreadMedia({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onMediaClick(imageUrl ? index + 1 : index);
+                onMediaClick(index);
               }}
             >
-              {renderMedia(media, imageUrl ? index + 1 : index)}
+              {renderMedia(media, index)}
               {showOverlay && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
                   <span className="text-white text-xl font-bold">+{medias.length - 4}</span>

@@ -2,14 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { MediaManager } from '@/services/media-manager';
 
 interface RegenerateMediaRequest {
   mediaId: string;
-}
-
-// Fonction utilitaire pour générer l'URL du média
-function generateMediaUrl(mediaId: string, baseUrl: string) {
-  return `${baseUrl}/api/medias/${mediaId}`;
 }
 
 export async function POST(request: NextRequest) {
@@ -24,7 +20,6 @@ export async function POST(request: NextRequest) {
     }
 
     const { mediaId } = await request.json() as RegenerateMediaRequest;
-    const baseUrl = "https://sowamadou.com";
 
     if (!mediaId) {
       return NextResponse.json(
@@ -33,24 +28,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Générer une nouvelle URL
-    const newUrl = generateMediaUrl(mediaId, baseUrl);
-
-    // Mettre à jour l'URL dans la base de données
-    const media = await prisma.media.update({
-      where: { id: mediaId },
-      data: { url: newUrl },
+    // Récupérer le média
+    const media = await prisma.media.findUnique({
+      where: { id: mediaId }
     });
 
-    // Si c'est l'image principale d'un thread, mettre à jour l'URL du thread aussi
-    if (media.threadId && media.isMain) {
-      await prisma.thread.update({
-        where: { id: media.threadId },
-        data: { imageUrl: newUrl }
-      });
+    if (!media) {
+      return NextResponse.json(
+        { error: 'Média non trouvé' },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json({ url: newUrl });
+    // Générer l'URL avec MediaManager
+    const url = MediaManager.getMediaUrl(media.fileName);
+
+    return NextResponse.json({ url });
   } catch (error) {
     console.error('Erreur lors de la régénération de l\'URL:', error);
     return NextResponse.json(
