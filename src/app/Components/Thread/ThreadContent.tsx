@@ -14,15 +14,13 @@ interface ThreadContentProps {
 
 interface Media {
   id: string;
-  url: string;
+  fileName: string;
   type: MediaType;
   alt?: string;
-  isMain: boolean;
   thumbnail?: {
     id: string;
-    url: string;
+    fileName: string;
   };
-  mimeType?: string;
 }
 
 interface ThreadTextProps {
@@ -84,7 +82,7 @@ export default function ThreadContent({ content, maxLength, threadId, imageUrl }
         const response = await fetch(`/api/medias?threadId=${threadId}`);
         if (!response.ok) throw new Error('Erreur lors du chargement des médias');
         const data = await response.json();
-        setMedias(data.medias);
+        setMedias(data);
       } catch (error) {
         console.error('Erreur lors du chargement des médias:', error);
       }
@@ -106,7 +104,7 @@ export default function ThreadContent({ content, maxLength, threadId, imageUrl }
 
   // Combiner l'image principale avec les autres médias pour le modal
   const allMedias = imageUrl 
-    ? [{ id: 'main', url: imageUrl, type: 'IMAGE' as const, isMain: true }, ...medias]
+    ? [{ id: 'main', fileName: imageUrl, type: 'IMAGE' as const }, ...medias]
     : medias;
 
   return (

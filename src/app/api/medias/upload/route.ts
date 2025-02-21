@@ -20,7 +20,6 @@ export async function POST(request: Request) {
     const file = formData.get('file') as File;
     const thumbnail = formData.get('thumbnail') as File | null;
     const threadId = formData.get('threadId') as string | null;
-    const isMain = formData.get('isMain') === 'true';
     const alt = formData.get('alt') as string | null;
 
     if (!file) {
@@ -64,7 +63,6 @@ export async function POST(request: Request) {
         thumbnail,
         {
           threadId: threadId ? Number(threadId) : undefined,
-          isMain,
           alt: alt || undefined
         }
       );
@@ -78,7 +76,6 @@ export async function POST(request: Request) {
     // Pour les autres types de médias
     const media = await MediaManager.createMedia(file, {
       threadId: threadId ? Number(threadId) : undefined,
-      isMain,
       alt: alt || undefined
     });
 

@@ -18,20 +18,24 @@ export function ImageUploader({ onUpload, threadId }: {
       const newPreviews: string[] = [];
       
       Array.from(files).forEach(file => {
-        formData.append('files', file);
+        formData.append('file', file);
         newPreviews.push(URL.createObjectURL(file));
       });
       
       setPreviews(newPreviews);
       
-      // Utilisation de la route /api/images/upload
-      const response = await fetch(`/api/images/upload${threadId ? `?threadId=${threadId}` : ''}`, {
+      // Utilisation de la route /api/medias/upload
+      const response = await fetch(`/api/medias/upload${threadId ? `?threadId=${threadId}` : ''}`, {
         method: 'POST',
         body: formData
       });
       
       const result = await response.json();
-      result.ids.forEach((id: string) => onUpload(id));
+      if (result.id) {
+        onUpload(result.id);
+      } else if (result.error) {
+        console.error('Upload error:', result.error);
+      }
     } catch (error) {
       console.error('Upload failed:', error);
     }

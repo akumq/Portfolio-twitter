@@ -13,7 +13,6 @@ interface Media {
   id: string;
   url: string;
   alt: string | null;
-  isMain: boolean;
 }
 
 interface Thread {
@@ -51,7 +50,6 @@ async function getThreads(): Promise<Thread[]> {
             fileName: true,
             type: true,
             alt: true,
-            isMain: true,
             thumbnail: {
               select: {
                 id: true,
@@ -73,7 +71,6 @@ async function getThreads(): Promise<Thread[]> {
         id: media.id,
         url: MediaManager.getMediaUrl(media.fileName),
         alt: media.alt,
-        isMain: media.isMain
       }))
     }));
   } catch (error) {
@@ -92,7 +89,7 @@ export default async function ThreadsPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {threads.map((thread) => {
-            const mainMedia = thread.medias.find(m => m.isMain);
+            const mainMedia = thread.medias[0];
             
             return (
               <Link 

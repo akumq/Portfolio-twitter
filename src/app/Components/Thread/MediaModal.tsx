@@ -5,17 +5,114 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { VideoPlayer } from './VideoPlayer';
 import { MediaType } from '@prisma/client';
+import { useMediaUrl } from '@/hooks/useMediaUrl';
 
 interface Media {
   id: string;
-  url: string;
+  fileName: string;
   type: MediaType;
   alt?: string;
-  isMain: boolean;
   thumbnail?: {
     id: string;
-    url: string;
+    fileName: string;
   };
+}
+
+interface MediaRendererProps {
+  media: Media;
+  videoState?: { isPlaying: boolean; currentTime: number };
+  currentTime?: number;
+  onTimeUpdate?: (time: number) => void;
+  onPlayingChange?: (isPlaying: boolean) => void;
+  isInModal?: boolean;
+}
+
+function MediaRenderer({ 
+  media, 
+  videoState = { isPlaying: false, currentTime: 0 },
+  currentTime = 0,
+  onTimeUpdate,
+  onPlayingChange,
+  isInModal = false
+}: MediaRendererProps) {
+  const mediaUrl = useMediaUrl(media.fileName);
+  const thumbnailUrl = useMediaUrl(media.thumbnail?.fileName);
+
+  switch (media.type) {
+    case 'VIDEO':
+      return (
+        <VideoPlayer
+          src={mediaUrl || ''}
+          poster={thumbnailUrl}
+          className="max-h-[90vh] w-auto mx-auto"
+          title={media.alt || `Vidéo ${media.id}`}
+          currentTime={currentTime}
+          onTimeUpdate={onTimeUpdate}
+          isPlaying={videoState.isPlaying}
+          onPlayingChange={onPlayingChange}
+          isInModal={isInModal}
+        />
+      );
+    case 'AUDIO':
+      return (
+        <audio
+          src={mediaUrl || ''}
+          controls
+          className="w-full max-w-xl mx-auto"
+          title={media.alt || `Audio ${media.id}`}
+        />
+      );
+    default: // IMAGE ou GIF
+      return (
+        <div className="relative w-full h-full flex items-center justify-center">
+          {mediaUrl ? (
+            media.type === 'GIF' ? (
+              <Image
+                src={mediaUrl}
+                alt={media.alt || `GIF ${media.id}`}
+                width={1200}
+                height={800}
+                className="max-h-[90vh] w-auto object-contain"
+                unoptimized
+              />
+            ) : (
+              <Image 
+                src={mediaUrl}
+                alt={media.alt || `Image ${media.id}`}
+                width={1200}
+                height={800}
+                className="max-h-[90vh] w-auto object-contain"
+                unoptimized
+              />
+            )
+          ) : (
+            <div className="flex items-center justify-center bg-gray-800 rounded-lg p-8">
+              <span className="text-gray-400">Image non disponible</span>
+            </div>
+          )}
+        </div>
+      );
+  }
+}
+
+function ThumbnailRenderer({ media }: { media: Media }) {
+  const mediaUrl = useMediaUrl(media.fileName);
+  const thumbnailUrl = useMediaUrl(media.thumbnail?.fileName);
+  const displayUrl = media.type === 'VIDEO' ? thumbnailUrl : mediaUrl;
+
+  return displayUrl ? (
+    <Image
+      src={displayUrl}
+      alt={media.alt || `Miniature`}
+      fill
+      className="object-cover rounded"
+      unoptimized
+    />
+  ) : (
+    <div className="w-full h-full flex items-center justify-center bg-gray-800 rounded">
+      <span className="text-gray-400 text-xs">Non disponible</span>
+    </div>
+  );
 }
 
 interface MediaModalProps {
@@ -46,61 +143,7 @@ export default function MediaModal({
   if (!isOpen) return null;
 
   const currentMedia = medias[currentIndex];
-
-  const renderMedia = (media: Media) => {
-    switch (media.type) {
-      case 'VIDEO':
-        const videoState = videoStates[media.id] || { isPlaying: false, currentTime: 0 };
-        return (
-          <VideoPlayer
-            src={media.url}
-            poster={media.thumbnail?.url}
-            className="max-h-[90vh] w-auto mx-auto"
-            title={media.alt || `Vidéo ${media.id}`}
-            currentTime={videoTimestamps[media.id] || 0}
-            onTimeUpdate={(time) => onVideoTimeUpdate?.(media.id, time)}
-            isPlaying={videoState.isPlaying}
-            onPlayingChange={(isPlaying) => 
-              onVideoStateChange?.(media.id, { ...videoState, isPlaying })
-            }
-            isInModal={true}
-          />
-        );
-      case 'AUDIO':
-        return (
-          <audio
-            src={media.url}
-            controls
-            className="w-full max-w-xl mx-auto"
-            title={media.alt || `Audio ${media.id}`}
-          />
-        );
-      default: // IMAGE ou GIF
-        return (
-          <div className="relative w-full h-full flex items-center justify-center">
-            {media.type === 'GIF' ? (
-              <Image
-                src={media.url}
-                alt={media.alt || `GIF ${media.id}`}
-                width={1200}
-                height={800}
-                className="max-h-[90vh] w-auto object-contain"
-                unoptimized
-              />
-            ) : (
-              <Image 
-                src={media.url}
-                alt={media.alt || `Image ${media.id}`}
-                width={1200}
-                height={800}
-                className="max-h-[90vh] w-auto object-contain"
-                unoptimized
-              />
-            )}
-          </div>
-        );
-    }
-  };
+  const videoState = videoStates[currentMedia.id];
 
   return (
     <AnimatePresence>
@@ -108,76 +151,68 @@ export default function MediaModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-black/90 flex flex-col"
+        className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center"
         onClick={onClose}
       >
-        {/* Barre de navigation supérieure */}
-        <div className="flex justify-between items-center p-4 text-white">
+        {/* Navigation */}
+        <div className="absolute top-1/2 left-4 transform -translate-y-1/2 space-y-4 z-10">
           <button
             onClick={(e) => {
-              e.preventDefault();
               e.stopPropagation();
-              onClose();
+              onPrevious();
             }}
-            className="p-2 hover:bg-white/10 rounded-full"
+            className="p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
+            disabled={currentIndex === 0}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <span className="text-sm">
-            {currentIndex + 1} / {medias.length}
-          </span>
-          <div className="w-10" /> {/* Espaceur pour centrer le compteur */}
         </div>
 
-        {/* Contenu principal */}
-        <div className="flex-1 relative flex items-center justify-center p-4" onClick={(e) => e.stopPropagation()}>
-          {/* Bouton précédent */}
-          {currentIndex > 0 && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onPrevious();
-              }}
-              className="absolute left-4 p-2 text-white hover:bg-white/10 rounded-full z-10"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-          )}
-
-          {/* Média actuel */}
-          <motion.div
-            key={currentMedia.id}
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -100 }}
-            className="w-full h-full flex items-center justify-center"
+        <div className="absolute top-1/2 right-4 transform -translate-y-1/2 space-y-4 z-10">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onNext();
+            }}
+            className="p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
+            disabled={currentIndex === medias.length - 1}
           >
-            {renderMedia(currentMedia)}
-          </motion.div>
-
-          {/* Bouton suivant */}
-          {currentIndex < medias.length - 1 && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onNext();
-              }}
-              className="absolute right-4 p-2 text-white hover:bg-white/10 rounded-full z-10"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          )}
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
 
-        {/* Miniatures en bas sur mobile */}
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors z-10"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        {/* Main content */}
+        <div className="w-full h-full flex items-center justify-center p-4">
+          <MediaRenderer
+            media={currentMedia}
+            videoState={videoState}
+            currentTime={videoTimestamps[currentMedia.id] || 0}
+            onTimeUpdate={(time) => onVideoTimeUpdate?.(currentMedia.id, time)}
+            onPlayingChange={(isPlaying) => 
+              onVideoStateChange?.(currentMedia.id, { 
+                ...(videoState || { isPlaying: false, currentTime: 0 }), 
+                isPlaying 
+              })
+            }
+            isInModal={true}
+          />
+        </div>
+
+        {/* Thumbnails */}
         <div className="overflow-x-auto p-2 flex gap-2 bg-black/50 md:hidden">
           {medias.map((media, index) => (
             <button
@@ -194,24 +229,7 @@ export default function MediaModal({
                 index === currentIndex ? 'ring-2 ring-white' : ''
               }`}
             >
-              {media.type === 'VIDEO' ? (
-                <Image
-                  src={media.thumbnail?.url || ''}
-                  alt={media.alt || `Miniature ${index + 1}`}
-                  width={64}
-                  height={64}
-                  className="w-full h-full object-cover rounded"
-                  unoptimized
-                />
-              ) : (
-                <Image
-                  src={media.url}
-                  alt={media.alt || `Miniature ${index + 1}`}
-                  fill
-                  className="object-cover rounded"
-                  unoptimized
-                />
-              )}
+              <ThumbnailRenderer media={media} />
             </button>
           ))}
         </div>

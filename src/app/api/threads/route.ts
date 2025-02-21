@@ -21,15 +21,11 @@ export async function GET() {
           }
         },
         medias: {
-          where: {
-            isMain: true
-          },
           select: {
             id: true,
             fileName: true,
             type: true,
             alt: true,
-            isMain: true,
             thumbnail: {
               select: {
                 id: true,
@@ -105,7 +101,6 @@ export async function POST(request: NextRequest) {
             id: true,
             type: true,
             alt: true,
-            isMain: true,
             createdAt: true,
             mimeType: true
           }

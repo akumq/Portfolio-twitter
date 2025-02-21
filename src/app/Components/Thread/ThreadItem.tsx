@@ -27,13 +27,12 @@ const ThreadStats = dynamic(() => import('./ThreadStats'), {
 
 interface Media {
   id: string;
-  url: string | null;
+  fileName: string;
   type: MediaType;
   alt?: string | null;
-  isMain: boolean;
   thumbnail?: {
     id: string;
-    url: string | null;
+    fileName: string;
   } | null;
 }
 
@@ -103,13 +102,12 @@ export default function ThreadItem({ id, initialData }: ThreadItemProps) {
 
   if (!thread) return null;
 
-  const processedMedias = thread.medias?.filter((media: Media) => media.url !== null).map((media: Media) => ({
+  const processedMedias = thread.medias?.filter((media: Media) => media.fileName !== null).map((media: Media) => ({
     ...media,
-    url: media.url!,
     alt: media.alt || undefined,
     thumbnail: media.thumbnail ? {
       ...media.thumbnail,
-      url: media.thumbnail.url || ''
+      fileName: media.thumbnail.fileName
     } : undefined
   })) || [];
 
@@ -177,7 +175,7 @@ export default function ThreadItem({ id, initialData }: ThreadItemProps) {
 
   // Combiner l'image principale avec les autres médias pour le modal
   const allMedias = thread.imageUrl 
-    ? [{ id: 'main', url: thread.imageUrl, type: 'IMAGE' as const, isMain: true }, ...processedMedias]
+    ? [{ id: 'main', fileName: thread.imageUrl, type: 'IMAGE' as const }, ...processedMedias]
     : processedMedias;
 
   const handleVideoStateChange = (mediaId: string, state: { isPlaying: boolean; currentTime: number }) => {

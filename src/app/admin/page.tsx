@@ -23,7 +23,6 @@ interface Language {
 interface MediaPreview {
   file: File;
   preview: string;
-  isMain: boolean;
   alt?: string;
 }
 
@@ -41,7 +40,6 @@ interface Thread {
     url: string;
     type: string;
     alt?: string;
-    isMain: boolean;
   }[];
   author: User;
 }
@@ -155,18 +153,26 @@ export default function AdminPage() {
     }
   };
 
-  const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
+  const handleMediaUpload = async (media: MediaPreview) => {
+    const formData = new FormData();
+    formData.append('file', media.file);
+    if (media.alt) formData.append('alt', media.alt);
 
-    const newMedias = Array.from(files).map(file => ({
-      file,
-      preview: URL.createObjectURL(file),
-      isMain: false,
-      alt: ''
-    }));
+    try {
+      const response = await fetch('/api/medias/upload', {
+        method: 'POST',
+        body: formData
+      });
 
-    setMedias(prev => [...prev, ...newMedias]);
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        console.error('Erreur détaillée:', responseData);
+        throw new Error(responseData.error || 'Erreur lors de l\'upload');
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'upload:', error);
+    }
   };
 
   const removeMedia = (index: number) => {
@@ -174,13 +180,6 @@ export default function AdminPage() {
       URL.revokeObjectURL(prev[index].preview);
       return prev.filter((_, i) => i !== index);
     });
-  };
-
-  const toggleMainMedia = (index: number) => {
-    setMedias(prev => prev.map((media, i) => ({
-      ...media,
-      isMain: i === index ? !media.isMain : false
-    })));
   };
 
   const updateMediaAlt = (index: number, alt: string) => {
@@ -197,7 +196,6 @@ export default function AdminPage() {
         const uploadPromises = medias.map(async (media) => {
           const formData = new FormData();
           formData.append('file', media.file);
-          formData.append('isMain', media.isMain.toString());
           if (media.alt) formData.append('alt', media.alt);
 
           const response = await fetch('/api/medias/validate', {
@@ -239,68 +237,13 @@ export default function AdminPage() {
         throw new Error(errorData.error || 'Erreur lors de la création du thread');
       }
 
-      const thread = await threadResponse.json();
+      await threadResponse.json();
 
       // Upload final des médias avec le threadId
       if (medias.length > 0) {
         // Traiter les médias un par un pour gérer correctement les vidéos et leurs miniatures
         for (const media of medias) {
-          const formData = new FormData();
-          formData.append('file', media.file);
-          formData.append('isMain', media.isMain.toString());
-          if (media.alt) formData.append('alt', media.alt);
-          formData.append('threadId', thread.id.toString());
-
-          // Si c'est une vidéo, on doit d'abord créer une miniature
-          if (media.file.type.startsWith('video/')) {
-            // Créer un canvas pour générer la miniature
-            const canvas = document.createElement('canvas');
-            const video = document.createElement('video');
-            video.src = URL.createObjectURL(media.file);
-
-            await new Promise((resolve) => {
-              video.onloadedmetadata = () => {
-                // Aller à 3 secondes ou à la fin si la vidéo est plus courte
-                const seekTime = Math.min(3, video.duration);
-                video.currentTime = seekTime;
-              };
-
-              video.onseeked = () => {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                const ctx = canvas.getContext('2d');
-                ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
-                canvas.toBlob((blob) => {
-                  if (blob) {
-                    formData.append('thumbnail', blob, 'thumbnail.jpg');
-                  }
-                  URL.revokeObjectURL(video.src);
-                  resolve(null);
-                }, 'image/jpeg', 0.8);
-              };
-
-              video.load();
-            });
-          }
-
-          const response = await fetch('/api/medias/upload', {
-            method: 'POST',
-            body: formData,
-          });
-
-          const responseData = await response.json();
-
-          if (!response.ok) {
-            console.error('Erreur détaillée:', responseData);
-            throw new Error(responseData.error || 'Erreur lors de l&apos;upload');
-          }
-
-          // Si c'est le média principal, mettre à jour le thread
-          if (media.isMain && responseData.id) {
-            await fetch(`/api/medias/${responseData.id}/main`, {
-              method: 'PATCH',
-            });
-          }
+          await handleMediaUpload(media);
         }
       }
 
@@ -358,15 +301,14 @@ export default function AdminPage() {
               ...thread,
               medias: thread.medias?.map(media => 
                 media.id === mediaId ? { ...media, url } : media
-              ),
-              imageUrl: thread.medias?.find(m => m.id === mediaId)?.isMain ? url : thread.imageUrl
+              )
             };
           }
           return thread;
         }));
       }
     } catch (error) {
-      console.error('Erreur lors de la régénération de l&apos;URL:', error);
+      console.error('Erreur lors de la régénération de l\'URL:', error);
     }
   };
 
@@ -475,7 +417,17 @@ export default function AdminPage() {
                     type="file"
                     accept="image/*, video/*, audio/*"
                     multiple
-                    onChange={handleMediaUpload}
+                    onChange={(e) => {
+                      const files = e.target.files;
+                      if (files) {
+                        const newMedias = Array.from(files).map(file => ({
+                          file,
+                          preview: URL.createObjectURL(file),
+                          alt: ''
+                        }));
+                        setMedias(prev => [...prev, ...newMedias]);
+                      }
+                    }}
                     className="block w-full text-sm text-gray-300
                       file:mr-4 file:py-2 file:px-4
                       file:rounded-md file:border-0
@@ -494,9 +446,7 @@ export default function AdminPage() {
                               src={media.preview}
                               preload="metadata"
                               muted
-                              className={`w-full h-32 object-cover rounded-lg ${
-                                media.isMain ? 'ring-2 ring-blue-500' : ''
-                              }`}
+                              className={`w-full h-32 object-cover rounded-lg`}
                               onLoadedMetadata={(e) => {
                                 const video = e.target as HTMLVideoElement;
                                 video.currentTime = 1; // Capture la première frame comme miniature
@@ -508,24 +458,10 @@ export default function AdminPage() {
                               alt={`Aperçu ${index + 1}`}
                               width={500}
                               height={300}
-                              className={`w-full h-32 object-cover rounded-lg ${
-                                media.isMain ? 'ring-2 ring-blue-500' : ''
-                              }`}
+                              className={`w-full h-32 object-cover rounded-lg`}
                             />
                           )}
                           <div className="absolute top-2 right-2 flex space-x-2">
-                            <button
-                              type="button"
-                              onClick={() => toggleMainMedia(index)}
-                              className={`p-1 rounded-full ${
-                                media.isMain ? 'bg-blue-600' : 'bg-gray-600'
-                              } text-white opacity-0 group-hover:opacity-100 transition-opacity`}
-                              title={media.isMain ? 'Média principal' : 'Définir comme principal'}
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                              </svg>
-                            </button>
                             <button
                               type="button"
                               onClick={() => removeMedia(index)}
@@ -624,11 +560,6 @@ export default function AdminPage() {
                                   fill
                                   className="w-full h-full object-cover"
                                 />
-                                {media.isMain && (
-                                  <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                                    Principal
-                                  </div>
-                                )}
                               </div>
                               <div className="p-3 space-y-2">
                                 <div className="flex items-center gap-2">

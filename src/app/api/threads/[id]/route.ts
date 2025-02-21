@@ -5,12 +5,21 @@ import prisma from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
-  props: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const params = await props.params;
+    const { id } = await params;
+    const threadId = parseInt(id);
+    
+    if (isNaN(threadId)) {
+      return NextResponse.json(
+        { error: 'ID de thread invalide' },
+        { status: 400 }
+      );
+    }
+
     const thread = await prisma.thread.findUnique({
-      where: { id: Number(params.id) },
+      where: { id: threadId },
       select: {
         id: true,
         title: true,
@@ -30,7 +39,6 @@ export async function GET(
             fileName: true,
             type: true,
             alt: true,
-            isMain: true,
             thumbnail: {
               select: {
                 id: true,
@@ -61,7 +69,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  props: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -72,7 +80,16 @@ export async function PUT(
       );
     }
 
-    const params = await props.params;
+    const { id } = await params;
+    const threadId = parseInt(id);
+    
+    if (isNaN(threadId)) {
+      return NextResponse.json(
+        { error: 'ID de thread invalide' },
+        { status: 400 }
+      );
+    }
+
     const data = await request.json();
     const { title, content, github, types, languages } = data;
 
@@ -85,7 +102,7 @@ export async function PUT(
     }
 
     const thread = await prisma.thread.update({
-      where: { id: Number(params.id) },
+      where: { id: threadId },
       data: {
         title: title.trim(),
         content: content.trim(),
@@ -114,7 +131,6 @@ export async function PUT(
             fileName: true,
             type: true,
             alt: true,
-            isMain: true,
             thumbnail: {
               select: {
                 id: true,
@@ -138,7 +154,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  props: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -149,9 +165,18 @@ export async function DELETE(
       );
     }
 
-    const params = await props.params;
+    const { id } = await params;
+    const threadId = parseInt(id);
+    
+    if (isNaN(threadId)) {
+      return NextResponse.json(
+        { error: 'ID de thread invalide' },
+        { status: 400 }
+      );
+    }
+
     await prisma.thread.delete({
-      where: { id: Number(params.id) }
+      where: { id: threadId }
     });
 
     return NextResponse.json({ success: true });

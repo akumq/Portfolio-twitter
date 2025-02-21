@@ -103,7 +103,6 @@ model Media {
   alt         String?
   mimeType    String
   size        Int
-  isMain      Boolean  @default(false)
   fileName    String   // Nouveau champ pour stocker le nom du fichier dans Minio
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

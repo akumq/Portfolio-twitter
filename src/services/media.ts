@@ -18,7 +18,6 @@ function detectMediaType(mimeType: string): MediaType {
 
 export interface MediaOptions {
   threadId?: number;
-  isMain?: boolean;
   alt?: string;
 }
 
@@ -32,7 +31,7 @@ export async function getMedia(mediaId: string): Promise<Media | null> {
 }
 
 export async function createThumbnail(file: File, options: MediaOptions): Promise<Media> {
-  const { threadId, isMain = false, alt = '' } = options;
+  const { threadId, alt = '' } = options;
   const mediaId = await generateMediaId();
   const buffer = Buffer.from(await file.arrayBuffer());
   const fileName = `${mediaId}-${file.name}`;
@@ -49,7 +48,6 @@ export async function createThumbnail(file: File, options: MediaOptions): Promis
       alt,
       mimeType: file.type,
       size: buffer.length,
-      isMain,
       fileName,
       ...(threadId ? { threadId } : {})
     }
@@ -57,7 +55,7 @@ export async function createThumbnail(file: File, options: MediaOptions): Promis
 }
 
 export async function createVideoWithThumbnail(file: File, thumbnailId: string, options: MediaOptions): Promise<Media> {
-  const { threadId, isMain = false, alt = '' } = options;
+  const { threadId, alt = '' } = options;
   const mediaId = await generateMediaId();
   const buffer = Buffer.from(await file.arrayBuffer());
   const fileName = `${mediaId}-${file.name}`;
@@ -81,7 +79,6 @@ export async function createVideoWithThumbnail(file: File, thumbnailId: string, 
       alt,
       mimeType: file.type,
       size: buffer.length,
-      isMain,
       fileName,
       thumbnailId,
       ...(threadId ? { threadId } : {})
@@ -111,7 +108,6 @@ export async function getMediaByThread(threadId: number): Promise<Media[]> {
   return prisma.media.findMany({
     where: { threadId },
     orderBy: [
-      { isMain: 'desc' },
       { createdAt: 'asc' }
     ]
   });

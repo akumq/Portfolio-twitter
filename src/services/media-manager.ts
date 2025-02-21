@@ -4,7 +4,6 @@ import { uploadFile, deleteFile, generatePresignedUrl } from './minio';
 
 export interface MediaManagerOptions {
   threadId?: number;
-  isMain?: boolean;
   alt?: string;
   expiryInSeconds?: number;
 }
@@ -13,9 +12,17 @@ export class MediaManager {
   /**
    * Génère l'URL publique d'un média
    */
-  static getMediaUrl(fileName: string): string {
+  static getMediaUrl(fileName: string | null | undefined): string {
+    if (!fileName) return '';
+    
     const cdnUrl = process.env.MINIO_PUBLIC_URL;
     const bucketName = process.env.MINIO_BUCKET_NAME;
+    
+    if (!cdnUrl || !bucketName) {
+      console.error('Configuration MinIO manquante');
+      return '';
+    }
+    
     return `${cdnUrl}/${bucketName}/${fileName}`;
   }
 
@@ -23,7 +30,7 @@ export class MediaManager {
    * Crée un nouveau média à partir d'un fichier
    */
   static async createMedia(file: File, options: MediaManagerOptions = {}): Promise<Media> {
-    const { threadId, isMain = false, alt = '' } = options;
+    const { threadId, alt = '' } = options;
     const mediaId = await this.generateMediaId();
     const buffer = Buffer.from(await file.arrayBuffer());
     const fileName = `${mediaId}-${file.name}`;
@@ -40,7 +47,6 @@ export class MediaManager {
         alt,
         mimeType: file.type,
         size: buffer.length,
-        isMain,
         fileName,
         ...(threadId ? { threadId } : {})
       }
@@ -57,7 +63,6 @@ export class MediaManager {
   ): Promise<{ video: Media; thumbnail: Media }> {
     // Créer d'abord la miniature sans threadId
     const thumbnail = await this.createMedia(thumbnailFile, {
-      isMain: false,
       alt: options.alt
     });
 
@@ -103,7 +108,7 @@ export class MediaManager {
   /**
    * Récupère tous les médias d'un thread
    */
-  static async getMediasByThread(threadId: number): Promise<(Media & { url: string })[]> {
+  static async getMediasByThread(threadId: number): Promise<Media[]> {
     const medias = await prisma.media.findMany({
       where: { 
         threadId,
@@ -116,19 +121,11 @@ export class MediaManager {
         thumbnail: true
       },
       orderBy: [
-        { isMain: 'desc' },
         { createdAt: 'asc' }
       ]
     });
 
-    return medias.map(media => ({
-      ...media,
-      url: this.getMediaUrl(media.fileName),
-      thumbnail: media.thumbnail ? {
-        ...media.thumbnail,
-        url: this.getMediaUrl(media.thumbnail.fileName)
-      } : null
-    }));
+    return medias;
   }
 
   /**
@@ -136,7 +133,6 @@ export class MediaManager {
    */
   static async updateMedia(mediaId: string, data: {
     alt?: string;
-    isMain?: boolean;
   }): Promise<Media> {
     return await prisma.media.update({
       where: { id: mediaId },

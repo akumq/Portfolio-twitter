@@ -42,7 +42,6 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File;
     const thumbnail = formData.get('thumbnail') as File | null;
     const threadId = formData.get('threadId') as string | null;
-    const isMain = formData.get('isMain') === 'true';
     const alt = formData.get('alt') as string | null;
 
     if (!file) {
@@ -88,13 +87,11 @@ export async function POST(request: NextRequest) {
       const thumbnailMedia = await createThumbnail(thumbnail, {
         threadId: threadId ? Number(threadId) : undefined,
         alt: alt || undefined,
-        isMain: false
       });
 
       // Créer ensuite la vidéo avec la référence à la miniature
       const videoMedia = await createVideoWithThumbnail(file, thumbnailMedia.id, {
         threadId: threadId ? Number(threadId) : undefined,
-        isMain,
         alt: alt || undefined
       });
 
@@ -107,8 +104,7 @@ export async function POST(request: NextRequest) {
     // Pour les autres types de médias
     const media = await createThumbnail(file, {
       threadId: threadId ? Number(threadId) : undefined,
-      isMain,
-      alt: alt || undefined
+        alt: alt || undefined
     });
 
     return NextResponse.json({ id: media.id });
