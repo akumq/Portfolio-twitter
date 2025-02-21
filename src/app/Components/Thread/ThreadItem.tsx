@@ -34,6 +34,7 @@ interface Media {
     id: string;
     fileName: string;
   } | null;
+  isThumbnail: boolean;
 }
 
 interface Thread {
@@ -108,7 +109,8 @@ export default function ThreadItem({ id, initialData }: ThreadItemProps) {
     thumbnail: media.thumbnail ? {
       ...media.thumbnail,
       fileName: media.thumbnail.fileName
-    } : undefined
+    } : undefined,
+    isThumbnail: false
   })) || [];
 
   const handleMediaClick = (index: number) => {

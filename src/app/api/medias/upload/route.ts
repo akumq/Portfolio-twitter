@@ -18,9 +18,10 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const thumbnail = formData.get('thumbnail') as File | null;
     const threadId = formData.get('threadId') as string | null;
     const alt = formData.get('alt') as string | null;
+    const isThumbnail = formData.get('isThumbnail') === 'true';
+    const thumbnailId = formData.get('thumbnailId') as string | null;
 
     if (!file) {
       return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400 });
@@ -49,34 +50,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Si c'est une vidéo, on doit avoir une miniature
-    if (file.type.startsWith('video/')) {
-      if (!thumbnail) {
-        return NextResponse.json(
-          { error: 'Une miniature est requise pour les vidéos' },
-          { status: 400 }
-        );
-      }
-
-      const { video, thumbnail: thumbnailMedia } = await MediaManager.createVideoWithThumbnail(
-        file,
-        thumbnail,
-        {
-          threadId: threadId ? Number(threadId) : undefined,
-          alt: alt || undefined
-        }
-      );
-
-      return NextResponse.json({ 
-        id: video.id,
-        thumbnailId: thumbnailMedia.id
-      });
-    }
-
-    // Pour les autres types de médias
+    // Créer le média avec les options appropriées
     const media = await MediaManager.createMedia(file, {
       threadId: threadId ? Number(threadId) : undefined,
-      alt: alt || undefined
+      alt: alt || undefined,
+      isThumbnail,
+      ...(thumbnailId ? { thumbnailId } : {})
     });
 
     return NextResponse.json({ id: media.id });

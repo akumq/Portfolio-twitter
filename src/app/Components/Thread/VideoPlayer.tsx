@@ -8,7 +8,6 @@ interface VideoPlayerProps {
   poster?: string;
   title?: string;
   className?: string;
-  onThumbnailGenerated?: (thumbnailUrl: string) => void;
   currentTime?: number;
   onTimeUpdate?: (time: number) => void;
   onMediaClick?: () => void;
@@ -28,7 +27,6 @@ export function VideoPlayer({
   poster, 
   title, 
   className, 
-  onThumbnailGenerated,
   currentTime = 0,
   onTimeUpdate,
   onMediaClick,
@@ -38,15 +36,15 @@ export function VideoPlayer({
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentTimeState, setCurrentTimeState] = useState(currentTime);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(!isInModal);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   // Fonction pour formater le temps
   const formatTime = useCallback((time: number) => {
@@ -201,6 +199,7 @@ export function VideoPlayer({
 
   // Gestion du clic sur la barre de progression
   const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
     if (!videoRef.current || !progressBarRef.current) return;
     
     const video = videoRef.current;
@@ -218,84 +217,26 @@ export function VideoPlayer({
     }
   };
 
-  // Fonction pour générer une miniature
-  const generateThumbnail = useCallback(() => {
-    if (!videoRef.current || !canvasRef.current) return;
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-    if (!context) return;
-
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.8);
-    onThumbnailGenerated?.(thumbnailUrl);
-  }, [onThumbnailGenerated]);
-
-  // Gestion des événements de la vidéo
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const handlePlay = () => onPlayingChange?.(true);
-    const handlePause = () => onPlayingChange?.(false);
-    const handleDurationChange = () => setDuration(video.duration);
-
-    video.addEventListener('play', handlePlay);
-    video.addEventListener('pause', handlePause);
-    video.addEventListener('durationchange', handleDurationChange);
-    video.addEventListener('timeupdate', handleTimeUpdate);
-
-    return () => {
-      video.removeEventListener('play', handlePlay);
-      video.removeEventListener('pause', handlePause);
-      video.removeEventListener('durationchange', handleDurationChange);
-      video.removeEventListener('timeupdate', handleTimeUpdate);
-    };
-  }, [onPlayingChange, handleTimeUpdate]);
-
-  // Nettoyage
-  useEffect(() => {
-    return () => {
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
+  // Gestion du survol et des événements tactiles
+  const handleInteractionStart = () => {
+    if (!isInModal) {
+      setIsHovered(true);
+      if (videoRef.current) {
+        videoRef.current.muted = true;
+        setIsMuted(true);
+        onPlayingChange?.(true);
       }
-    };
-  }, []);
-
-  useEffect(() => {
-    // Générer la miniature si elle n'existe pas déjà
-    if (!poster && videoRef.current && !isPlaying && src) {
-      const video = videoRef.current;
-      video.preload = 'metadata';
-      video.src = src;
-
-      const handleLoadedMetadata = () => {
-        if (video.readyState >= 2) {
-          video.currentTime = 1;
-        }
-      };
-
-      const handleSeeked = () => {
-        generateThumbnail();
-        // Nettoyer la source après la génération de la miniature
-        video.src = '';
-        video.removeAttribute('src');
-        video.load();
-      };
-
-      video.addEventListener('loadedmetadata', handleLoadedMetadata);
-      video.addEventListener('seeked', handleSeeked);
-
-      return () => {
-        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-        video.removeEventListener('seeked', handleSeeked);
-      };
     }
-  }, [src, poster, isPlaying, generateThumbnail]);
+    setShowControls(true);
+  };
+
+  const handleInteractionEnd = () => {
+    if (!isInModal) {
+      setIsHovered(false);
+      onPlayingChange?.(false);
+    }
+    setShowControls(false);
+  };
 
   // Gestionnaire de clic sur la vidéo
   const handleVideoClick = (e: React.MouseEvent) => {
@@ -310,22 +251,26 @@ export function VideoPlayer({
     }
   };
 
-  // Gestion du survol et des événements tactiles
-  const handleInteractionStart = () => {
-    setShowControls(true);
-    if (!isInModal && videoRef.current) {
-      videoRef.current.muted = true;
-      setIsMuted(true);
-      onPlayingChange?.(true);
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isInModal;
+      setIsMuted(!isInModal);
     }
-  };
+  }, [isInModal]);
 
-  const handleInteractionEnd = () => {
-    setShowControls(false);
-    if (!isInModal) {
-      onPlayingChange?.(false);
-    }
-  };
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleLoadedMetadata = () => {
+      setDuration(video.duration);
+    };
+
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    return () => {
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    };
+  }, []);
 
   return (
     <div 
@@ -339,38 +284,38 @@ export function VideoPlayer({
       <video
         ref={videoRef}
         poster={poster || undefined}
-        className="w-full h-full"
+        className="w-full h-full object-cover"
         playsInline
         onClick={(e) => {
           e.stopPropagation();
-          togglePlay();
+          if (isInModal) {
+            togglePlay();
+          } else {
+            onMediaClick?.();
+          }
         }}
         controls={false}
         src={src || undefined}
         onTimeUpdate={handleTimeUpdate}
         title={title}
+        muted={!isInModal}
+        loop={!isInModal}
       />
 
       {/* Overlay de lecture/pause (uniquement dans le thread) */}
-      {!isInModal && (
-        <div 
-          className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${
-            isPlaying ? 'opacity-0' : 'opacity-100'
-          }`}
-        >
-          {!isPlaying && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                togglePlay();
-              }}
-              className="w-20 h-20 flex items-center justify-center rounded-full bg-black/50 text-white/90 hover:bg-black/60 transition-colors"
-            >
-              <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M8 5v14l11-7z"/>
-              </svg>
-            </button>
-          )}
+      {!isInModal && !isHovered && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onMediaClick?.();
+            }}
+            className="w-20 h-20 flex items-center justify-center rounded-full bg-black/50 text-white/90 hover:bg-black/60 transition-colors"
+          >
+            <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </button>
         </div>
       )}
 
@@ -383,12 +328,12 @@ export function VideoPlayer({
         </div>
       )}
 
-      {/* Contrôles complets (uniquement dans la galerie) */}
+      {/* Contrôles complets (uniquement dans la modal) */}
       {isInModal && (
         <div 
           className={`absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/40 to-transparent pt-12 pb-4 px-4 transition-opacity duration-200 ${
             showControls || !isPlaying ? 'opacity-100' : 'opacity-0'
-          }`}
+          } video-controls`}
         >
           {/* Barre de progression */}
           <div 
@@ -403,11 +348,14 @@ export function VideoPlayer({
           </div>
 
           {/* Contrôles */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-4">
               {/* Bouton lecture/pause */}
               <button 
-                onClick={togglePlay}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  togglePlay();
+                }}
                 className="text-white/90 hover:text-white transition-colors"
               >
                 {isPlaying ? (
@@ -424,7 +372,10 @@ export function VideoPlayer({
               {/* Contrôle du volume */}
               <div className="group/volume relative flex items-center">
                 <button 
-                  onClick={toggleMute}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleMute();
+                  }}
                   className="text-white/90 hover:text-white transition-colors"
                 >
                   {isMuted ? (
@@ -447,7 +398,10 @@ export function VideoPlayer({
 
             {/* Bouton plein écran */}
             <button 
-              onClick={toggleFullscreen}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFullscreen();
+              }}
               className="text-white/90 hover:text-white transition-colors"
             >
               {isFullscreen ? (
@@ -463,12 +417,6 @@ export function VideoPlayer({
           </div>
         </div>
       )}
-
-      <canvas
-        ref={canvasRef}
-        style={{ display: 'none' }}
-        aria-hidden="true"
-      />
     </div>
   );
 } 

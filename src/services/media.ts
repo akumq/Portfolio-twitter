@@ -1,5 +1,5 @@
 import prisma from '@/lib/prisma';
-import { MediaType, Media } from '@prisma/client';
+import { Media } from '@prisma/client';
 import { uploadFile, deleteFile } from './minio';
 
 async function generateMediaId(): Promise<string> {
@@ -8,13 +8,7 @@ async function generateMediaId(): Promise<string> {
   return `${timestamp}-${randomStr}`;
 }
 
-function detectMediaType(mimeType: string): MediaType {
-  if (mimeType === 'image/gif') return 'GIF';
-  if (mimeType.startsWith('image/')) return 'IMAGE';
-  if (mimeType.startsWith('video/')) return 'VIDEO';
-  if (mimeType.startsWith('audio/')) return 'AUDIO';
-  return 'IMAGE';
-}
+
 
 export interface MediaOptions {
   threadId?: number;
@@ -35,7 +29,6 @@ export async function createThumbnail(file: File, options: MediaOptions): Promis
   const mediaId = await generateMediaId();
   const buffer = Buffer.from(await file.arrayBuffer());
   const fileName = `${mediaId}-${file.name}`;
-  const type = detectMediaType(file.type);
 
   // Upload vers Minio
   await uploadFile(buffer, fileName, file.type);
@@ -44,11 +37,12 @@ export async function createThumbnail(file: File, options: MediaOptions): Promis
   return await prisma.media.create({
     data: {
       id: mediaId,
-      type,
+      type: 'THUMBNAIL',
       alt,
       mimeType: file.type,
       size: buffer.length,
       fileName,
+      isThumbnail: true,
       ...(threadId ? { threadId } : {})
     }
   });

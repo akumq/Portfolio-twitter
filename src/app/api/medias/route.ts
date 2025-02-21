@@ -1,23 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { createThumbnail, createVideoWithThumbnail } from '@/services/media';
 import { MediaManager } from '@/services/media-manager';
+import prisma from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const threadId = searchParams.get('threadId');
 
-  if (!threadId) {
-    return NextResponse.json(
-      { error: 'ID du thread requis' },
-      { status: 400 }
-    );
-  }
-
   try {
-    const medias = await MediaManager.getMediasByThread(Number(threadId));
-    return NextResponse.json(medias);
+    if (threadId) {
+      const medias = await MediaManager.getMediasByThread(Number(threadId));
+      return NextResponse.json(medias);
+    } else {
+      const session = await getServerSession(authOptions);
+      if (!session?.user?.isAdmin) {
+        return NextResponse.json(
+          { error: 'Non autorisé' },
+          { status: 401 }
+        );
+      }
+
+      const medias = await prisma.media.findMany({
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+
+      const mediasWithUrls = medias.map(media => ({
+        ...media,
+        url: MediaManager.getMediaUrl(media.fileName)
+      }));
+
+      return NextResponse.json(mediasWithUrls);
+    }
   } catch (error) {
     console.error('Erreur lors de la récupération des médias:', error);
     return NextResponse.json(
@@ -40,7 +56,6 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const thumbnail = formData.get('thumbnail') as File | null;
     const threadId = formData.get('threadId') as string | null;
     const alt = formData.get('alt') as string | null;
 
@@ -74,37 +89,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Si c'est une vidéo, on doit avoir une miniature
-    if (file.type.startsWith('video/')) {
-      if (!thumbnail) {
-        return NextResponse.json(
-          { error: 'Une miniature est requise pour les vidéos' },
-          { status: 400 }
-        );
-      }
-
-      // Créer d'abord la miniature
-      const thumbnailMedia = await createThumbnail(thumbnail, {
-        threadId: threadId ? Number(threadId) : undefined,
-        alt: alt || undefined,
-      });
-
-      // Créer ensuite la vidéo avec la référence à la miniature
-      const videoMedia = await createVideoWithThumbnail(file, thumbnailMedia.id, {
-        threadId: threadId ? Number(threadId) : undefined,
-        alt: alt || undefined
-      });
-
-      return NextResponse.json({
-        id: videoMedia.id,
-        thumbnailId: thumbnailMedia.id
-      });
-    }
-
-    // Pour les autres types de médias
-    const media = await createThumbnail(file, {
+    const media = await MediaManager.createMedia(file, {
       threadId: threadId ? Number(threadId) : undefined,
-        alt: alt || undefined
+      alt: alt || undefined
     });
 
     return NextResponse.json({ id: media.id });

@@ -6,6 +6,8 @@ export interface MediaManagerOptions {
   threadId?: number;
   alt?: string;
   expiryInSeconds?: number;
+  isThumbnail?: boolean;
+  thumbnailId?: string;
 }
 
 export class MediaManager {
@@ -30,11 +32,14 @@ export class MediaManager {
    * Crée un nouveau média à partir d'un fichier
    */
   static async createMedia(file: File, options: MediaManagerOptions = {}): Promise<Media> {
-    const { threadId, alt = '' } = options;
+    const { threadId, alt = '', isThumbnail = false, thumbnailId } = options;
     const mediaId = await this.generateMediaId();
     const buffer = Buffer.from(await file.arrayBuffer());
     const fileName = `${mediaId}-${file.name}`;
     const type = this.detectMediaType(file.type);
+
+    // Si c'est une miniature, forcer le type à THUMBNAIL
+    const finalType = isThumbnail ? 'THUMBNAIL' : type;
 
     // Upload vers Minio
     await uploadFile(buffer, fileName, file.type);
@@ -43,12 +48,14 @@ export class MediaManager {
     return await prisma.media.create({
       data: {
         id: mediaId,
-        type,
+        type: finalType,
         alt,
         mimeType: file.type,
         size: buffer.length,
         fileName,
-        ...(threadId ? { threadId } : {})
+        isThumbnail,
+        ...(threadId ? { threadId } : {}),
+        ...(thumbnailId ? { thumbnailId } : {})
       }
     });
   }
@@ -112,10 +119,7 @@ export class MediaManager {
     const medias = await prisma.media.findMany({
       where: { 
         threadId,
-        // Exclure les médias qui sont des miniatures (ceux qui sont référencés par d'autres médias)
-        videos: {
-          none: {}
-        }
+        thumbnailId: null // On récupère uniquement les médias principaux (pas les miniatures)
       },
       include: {
         thumbnail: true

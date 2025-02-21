@@ -21,6 +21,9 @@ export async function GET() {
           }
         },
         medias: {
+          where: {
+            isThumbnail: false
+          },
           select: {
             id: true,
             fileName: true,
@@ -96,7 +99,10 @@ export async function POST(request: NextRequest) {
             name: true
           }
         },
-        medias: {
+        medias: { 
+          where: {
+            isThumbnail: false
+          },
           select: {
             id: true,
             type: true,

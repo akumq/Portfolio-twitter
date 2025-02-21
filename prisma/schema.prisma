@@ -111,6 +111,7 @@ model Media {
   thumbnailId String?
   thumbnail   Media?   @relation("ThumbnailToVideo", fields: [thumbnailId], references: [id])
   videos      Media[]  @relation("ThumbnailToVideo")
+  isThumbnail Boolean  @default(false)
 
   @@index([threadId])
   @@index([thumbnailId])
