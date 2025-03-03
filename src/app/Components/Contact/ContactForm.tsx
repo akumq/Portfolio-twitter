@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 
 interface ContactFormProps {
@@ -17,6 +17,7 @@ export default function ContactForm({ onSuccess }: ContactFormProps) {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -30,6 +31,7 @@ export default function ContactForm({ onSuccess }: ContactFormProps) {
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
+    setSuccessMessage('');
 
     fetch('/api/contact', {
       method: 'POST',
@@ -45,8 +47,20 @@ export default function ContactForm({ onSuccess }: ContactFormProps) {
       return response.json();
     })
     .then(() => {
+      setSuccessMessage('Message envoyé avec succès! Nous vous répondrons dans les plus brefs délais.');
+      // Réinitialiser le formulaire
+      setFormData({
+        name: session?.user?.name || '',
+        email: session?.user?.email || '',
+        subject: '',
+        content: ''
+      });
+      
       if (onSuccess) {
-        onSuccess();
+        // Délai pour que l'utilisateur puisse voir le message de succès
+        setTimeout(() => {
+          onSuccess();
+        }, 1500);
       }
     })
     .catch(err => {
@@ -62,6 +76,12 @@ export default function ContactForm({ onSuccess }: ContactFormProps) {
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
           {error}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
+          {successMessage}
         </div>
       )}
 

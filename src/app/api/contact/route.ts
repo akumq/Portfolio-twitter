@@ -49,6 +49,34 @@ export async function POST(request: Request) {
       }
     });
 
+    // Envoi d'un email de notification
+    try {
+      const emailText = `
+Nouveau message de contact reçu:
+        
+De: ${name} (${email})
+Sujet: ${subject}
+        
+Message:
+${content}
+      `;
+      
+      await fetch(`${process.env.NEXTAUTH_URL}/api/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: process.env.SMTP_FROM,
+          subject: `Nouveau message de contact: ${subject}`,
+          text: emailText,
+        }),
+      });
+    } catch (emailError) {
+      console.error('Erreur lors de l\'envoi de l\'email de notification:', emailError);
+      // On continue même si l'envoi d'email échoue
+    }
+
     return NextResponse.json(message, { status: 201 });
   } catch (error) {
     console.error('Erreur lors de la création du message:', error);

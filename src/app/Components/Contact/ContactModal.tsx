@@ -22,7 +22,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <h2 className="text-xl font-bold mb-6">Envoyer un message</h2>
+        <h2 className="text-xl font-bold mb-6">Me contacter</h2>
         <ContactForm onSuccess={onClose} />
       </div>
     </div>

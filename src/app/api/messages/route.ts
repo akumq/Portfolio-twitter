@@ -25,6 +25,7 @@ export async function GET() {
       );
     }
 
+    // Récupérer les messages envoyés par l'utilisateur
     const messages = await prisma.message.findMany({
       where: { authorId: user.id },
       orderBy: { createdAt: 'desc' }

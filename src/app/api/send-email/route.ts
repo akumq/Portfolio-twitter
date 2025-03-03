@@ -12,6 +12,15 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Vérification de la configuration
+transporter.verify()
+  .then(() => {
+    console.log('Connexion SMTP établie avec succès');
+  })
+  .catch((error) => {
+    console.error('Erreur lors de la vérification de la configuration SMTP:', error);
+  });
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -25,15 +34,19 @@ export async function POST(request: Request) {
       );
     }
 
+    console.log(`Tentative d'envoi d'email à: ${to}`);
+
     // Envoi de l'email
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: process.env.SMTP_FROM,
       to,
       subject,
       text,
     });
 
-    return NextResponse.json({ success: true }, { status: 200 });
+    console.log(`Email envoyé avec succès: ${info.messageId}`);
+
+    return NextResponse.json({ success: true, messageId: info.messageId }, { status: 200 });
   } catch (error) {
     console.error('Erreur lors de l\'envoi de l\'email:', error);
     return NextResponse.json(
@@ -41,4 +54,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-} 
+}
