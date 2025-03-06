@@ -94,7 +94,7 @@ export async function PUT(
     }
 
     const data = await request.json();
-    const { title, content, github, types, languages } = data;
+    const { title, content, github, types, languageIds } = data;
 
     // Validation des données
     if (!title?.trim() || !content?.trim()) {
@@ -112,7 +112,7 @@ export async function PUT(
         github: github?.trim() || null,
         types: types || [],
         languages: {
-          set: languages?.map((id: number) => ({ id })) || []
+          set: languageIds?.map((id: number) => ({ id })) || []
         }
       },
       select: {

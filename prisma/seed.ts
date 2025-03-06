@@ -58,6 +58,235 @@ async function main() {
         });
     }
 
+    // Création des catégories de compétences
+    const categoryFrontend = await prisma.skillCategory.upsert({
+        where: { name: 'frontend' },
+        update: {},
+        create: {
+            name: 'frontend',
+            title: 'Frontend',
+            icon: '🎨',
+            description: 'Technologies de développement frontend'
+        }
+    });
+
+    const categoryBackend = await prisma.skillCategory.upsert({
+        where: { name: 'backend' },
+        update: {},
+        create: {
+            name: 'backend',
+            title: 'Backend',
+            icon: '⚙️',
+            description: 'Technologies de développement backend'
+        }
+    });
+
+    const categoryTools = await prisma.skillCategory.upsert({
+        where: { name: 'tools' },
+        update: {},
+        create: {
+            name: 'tools',
+            title: 'Outils & Méthodes',
+            icon: '🛠️',
+            description: 'Outils et méthodologies de développement'
+        }
+    });
+
+    // Création des compétences frontend
+    await prisma.skill.upsert({
+        where: { 
+            name_categoryId: {
+                name: 'React',
+                categoryId: categoryFrontend.id
+            }
+        },
+        update: {},
+        create: {
+            name: 'React',
+            description: 'Développement d\'applications web modernes avec React et ses écosystèmes',
+            formation: 'Autodidacte',
+            categoryId: categoryFrontend.id
+        }
+    });
+
+    await prisma.skill.upsert({
+        where: { 
+            name_categoryId: {
+                name: 'Next.js',
+                categoryId: categoryFrontend.id
+            }
+        },
+        update: {},
+        create: {
+            name: 'Next.js',
+            description: 'Création de sites web performants avec le framework Next.js',
+            formation: 'Autodidacte',
+            categoryId: categoryFrontend.id
+        }
+    });
+
+    await prisma.skill.upsert({
+        where: { 
+            name_categoryId: {
+                name: 'TypeScript',
+                categoryId: categoryFrontend.id
+            }
+        },
+        update: {},
+        create: {
+            name: 'TypeScript',
+            description: 'Développement typé pour une meilleure maintenabilité',
+            formation: 'BUT Informatique',
+            categoryId: categoryFrontend.id
+        }
+    });
+
+    await prisma.skill.upsert({
+        where: { 
+            name_categoryId: {
+                name: 'TailwindCSS',
+                categoryId: categoryFrontend.id
+            }
+        },
+        update: {},
+        create: {
+            name: 'TailwindCSS',
+            description: 'Stylisation rapide et responsive avec TailwindCSS',
+            formation: 'BUT Informatique',
+            categoryId: categoryFrontend.id
+        }
+    });
+
+    // Création des compétences backend
+    await prisma.skill.upsert({
+        where: { 
+            name_categoryId: {
+                name: 'Node.js',
+                categoryId: categoryBackend.id
+            }
+        },
+        update: {},
+        create: {
+            name: 'Node.js',
+            description: 'Développement backend avec Node.js et Express',
+            formation: 'Autodidacte',
+            categoryId: categoryBackend.id
+        }
+    });
+
+    await prisma.skill.upsert({
+        where: { 
+            name_categoryId: {
+                name: 'Python',
+                categoryId: categoryBackend.id
+            }
+        },
+        update: {},
+        create: {
+            name: 'Python',
+            description: 'Développement d\'applications et scripts Python',
+            formation: 'Autodidacte',
+            categoryId: categoryBackend.id
+        }
+    });
+
+    await prisma.skill.upsert({
+        where: { 
+            name_categoryId: {
+                name: 'PostgreSQL',
+                categoryId: categoryBackend.id
+            }
+        },
+        update: {},
+        create: {
+            name: 'PostgreSQL',
+            description: 'Gestion de bases de données relationnelles',
+            formation: 'Master MIAGE',
+            categoryId: categoryBackend.id
+        }
+    });
+
+    await prisma.skill.upsert({
+        where: { 
+            name_categoryId: {
+                name: 'Prisma',
+                categoryId: categoryBackend.id
+            }
+        },
+        update: {},
+        create: {
+            name: 'Prisma',
+            description: 'ORM moderne pour TypeScript et Node.js',
+            formation: 'Autodidacte',
+            categoryId: categoryBackend.id
+        }
+    });
+
+    // Création des compétences outils
+    await prisma.skill.upsert({
+        where: { 
+            name_categoryId: {
+                name: 'Git',
+                categoryId: categoryTools.id
+            }
+        },
+        update: {},
+        create: {
+            name: 'Git',
+            description: 'Gestion de version et collaboration',
+            formation: 'Autodidacte',
+            categoryId: categoryTools.id
+        }
+    });
+
+    await prisma.skill.upsert({
+        where: { 
+            name_categoryId: {
+                name: 'Docker',
+                categoryId: categoryTools.id
+            }
+        },
+        update: {},
+        create: {
+            name: 'Docker',
+            description: 'Conteneurisation d\'applications',
+            formation: 'BUT Informatique',
+            categoryId: categoryTools.id
+        }
+    });
+
+    await prisma.skill.upsert({
+        where: { 
+            name_categoryId: {
+                name: 'CI/CD',
+                categoryId: categoryTools.id
+            }
+        },
+        update: {},
+        create: {
+            name: 'CI/CD',
+            description: 'Intégration et déploiement continus',
+            formation: 'BUT Informatique',
+            categoryId: categoryTools.id
+        }
+    });
+
+    await prisma.skill.upsert({
+        where: { 
+            name_categoryId: {
+                name: 'Agile/Scrum',
+                categoryId: categoryTools.id
+            }
+        },
+        update: {},
+        create: {
+            name: 'Agile/Scrum',
+            description: 'Méthodologies de gestion de projet agile',
+            formation: 'BUT Informatique / Master MIAGE',
+            categoryId: categoryTools.id
+        }
+    });
+
     console.log('Base de données initialisée avec succès !');
 }
 

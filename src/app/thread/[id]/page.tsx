@@ -64,16 +64,54 @@ const getGithubInfo = unstable_cache(
         .map(item => item.path as string)
         .sort();
 
-      // Mettre à jour les langages dans la base de données
+      // Récupérer les icônes des langages depuis GitHub
       const languageNames = Object.keys(languages.data);
+      
+      // Mettre à jour les langages dans la base de données avec leurs icônes
+      await Promise.all(languageNames.map(async (name) => {
+        try {
+          // Vérifier si le langage existe déjà
+          const existingLanguage = await prisma.language.findUnique({
+            where: { name }
+          });
+
+          if (!existingLanguage) {
+            // Si le langage n'existe pas, on le crée avec son icône
+            const iconUrl = `https://raw.githubusercontent.com/github/linguist/master/lib/linguist/languages.yml`;
+            const response = await fetch(iconUrl);
+            const data = await response.text();
+            
+            // Chercher l'icône dans le fichier YAML
+            const languageSection = data.split('\n\n').find(section => 
+              section.toLowerCase().includes(`${name.toLowerCase()}:`)
+            );
+
+            let imageUrl = null;
+            if (languageSection) {
+              const match = languageSection.match(/icon: (.+)/);
+              if (match) {
+                imageUrl = `https://raw.githubusercontent.com/github/linguist/master/lib/linguist/icons/${match[1]}`;
+              }
+            }
+
+            await prisma.language.create({
+              data: {
+                name,
+                image: imageUrl
+              }
+            });
+          }
+        } catch (error) {
+          console.error(`Erreur lors de la création du langage ${name}:`, error);
+        }
+      }));
+
+      // Connecter les langages au thread
       await prisma.thread.update({
         where: { id: threadId },
         data: {
           languages: {
-            connectOrCreate: languageNames.map(name => ({
-              where: { name },
-              create: { name }
-            }))
+            connect: languageNames.map(name => ({ name }))
           }
         }
       });

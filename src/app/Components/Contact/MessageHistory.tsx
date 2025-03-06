@@ -18,6 +18,7 @@ export default function MessageHistory() {
   const { data: session } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (session) {
@@ -27,15 +28,24 @@ export default function MessageHistory() {
 
   const fetchMessages = () => {
     setLoading(true);
+    setError(null);
     fetch('/api/messages')
       .then(res => res.json())
       .then(data => {
-        setMessages(data);
+        if (Array.isArray(data)) {
+          setMessages(data);
+        } else {
+          console.error('Les données reçues ne sont pas un tableau:', data);
+          setError('Format de données invalide');
+          setMessages([]);
+        }
         setLoading(false);
       })
       .catch(error => {
         console.error('Erreur lors de la récupération des messages:', error);
+        setError('Erreur de chargement');
         setLoading(false);
+        setMessages([]);
       });
   };
 
@@ -60,7 +70,21 @@ export default function MessageHistory() {
     );
   }
 
-  if (messages.length === 0) {
+  if (error) {
+    return (
+      <div className="text-center py-4">
+        <p className="text-red-500">{error}</p>
+        <button 
+          onClick={fetchMessages}
+          className="mt-2 px-4 py-2 bg-text_highlight text-white rounded-md hover:bg-text_highlight/80 transition-colors"
+        >
+          Réessayer
+        </button>
+      </div>
+    );
+  }
+
+  if (!messages || messages.length === 0) {
     return (
       <div className="text-center py-4">
         <p className="text-gray-500">Aucun message envoyé</p>

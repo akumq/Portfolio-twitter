@@ -10,14 +10,15 @@ datasource db {
 model Thread {
   id        Int           @id @default(autoincrement())
   title     String
-  content   String        @db.Text
+  content   String
   github    String?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   types     ProjectType[]
   comments  Comment[]
-  medias    Media[]      // Relation avec les médias
+  medias    Media[]
   languages Language[]    @relation("LanguageToThread")
+  skills    Skill[]       @relation("SkillToThread")
 }
 
 model Comment {
@@ -74,14 +75,15 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
-
   @@unique([identifier, token])
 }
 
 model Language {
   id      Int      @id @default(autoincrement())
   name    String   @unique
+  image   String?
   threads Thread[] @relation("LanguageToThread")
+  skills  Skill[]  @relation("LanguageToSkill")
 }
 
 model Message {
@@ -103,18 +105,45 @@ model Media {
   alt         String?
   mimeType    String
   size        Int
-  fileName    String   // Nouveau champ pour stocker le nom du fichier dans Minio
+  fileName    String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   threadId    Int?
-  thread      Thread?  @relation(fields: [threadId], references: [id], onDelete: Cascade)
   thumbnailId String?
+  isThumbnail Boolean  @default(false)
+  thread      Thread?  @relation(fields: [threadId], references: [id], onDelete: Cascade)
   thumbnail   Media?   @relation("ThumbnailToVideo", fields: [thumbnailId], references: [id])
   videos      Media[]  @relation("ThumbnailToVideo")
-  isThumbnail Boolean  @default(false)
 
   @@index([threadId])
   @@index([thumbnailId])
+}
+
+model Skill {
+  id          Int           @id @default(autoincrement())
+  name        String
+  description String
+  formation   String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  // Relations
+  categoryId  Int
+  category    SkillCategory @relation(fields: [categoryId], references: [id])
+  languages   Language[]    @relation("LanguageToSkill")
+  threads     Thread[]      @relation("SkillToThread")
+
+  @@unique([name, categoryId])
+  @@index([categoryId])
+}
+
+model SkillCategory {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  title       String
+  icon        String
+  description String?
+  skills      Skill[]
 }
 
 enum MediaType {

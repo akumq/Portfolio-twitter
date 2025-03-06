@@ -7,8 +7,10 @@ import { ProjectType } from '@prisma/client';
 interface ActiveFiltersProps {
   languages: Array<{ name: string; count: number }>;
   projectTypes: Array<{ type: ProjectType; _count: number }>;
+  skills?: Array<{ id: number; name: string; count: number }>;
   selectedLanguage?: string;
   selectedType?: ProjectType;
+  selectedSkill?: number;
 }
 
 const PROJECT_TYPE_LABELS = {
@@ -25,10 +27,15 @@ const PROJECT_TYPE_LABELS = {
   OTHER: 'Autre'
 } as const;
 
-export default function ActiveFilters({ selectedLanguage, selectedType }: ActiveFiltersProps) {
+export default function ActiveFilters({ selectedLanguage, selectedType, selectedSkill, skills = [] }: ActiveFiltersProps) {
   const [isOpen, setIsOpen] = useState(true);
   
-  if (!selectedLanguage && !selectedType) return null;
+  if (!selectedLanguage && !selectedType && !selectedSkill) return null;
+
+  // Trouver le nom de la compétence sélectionnée
+  const selectedSkillName = selectedSkill 
+    ? skills.find(skill => skill.id === selectedSkill)?.name 
+    : undefined;
 
   return (
     <div className="bg-background border-b border-border_color">
@@ -41,8 +48,10 @@ export default function ActiveFilters({ selectedLanguage, selectedType }: Active
             <h2 className="font-bold">Filtres actifs</h2>
             <div className="flex items-center gap-1 text-sm text-text_secondary">
               {selectedLanguage && <span>#{selectedLanguage}</span>}
-              {selectedLanguage && selectedType && <span>·</span>}
+              {(selectedLanguage && selectedType) || (selectedLanguage && selectedSkill) ? <span>·</span> : null}
               {selectedType && <span>{PROJECT_TYPE_LABELS[selectedType]}</span>}
+              {selectedType && selectedSkill && <span>·</span>}
+              {selectedSkill && <span>{selectedSkillName}</span>}
             </div>
           </div>
           <svg 
@@ -62,7 +71,7 @@ export default function ActiveFilters({ selectedLanguage, selectedType }: Active
         <div className="p-4 pt-0 space-y-3 overflow-y-auto scrollbar-thin scrollbar-thumb-border_color scrollbar-track-transparent">
           {selectedLanguage && (
             <Link
-              href={`/filters${selectedType ? `?type=${selectedType}` : ''}`}
+              href={`/filters${selectedType ? `?type=${selectedType}` : ''}${selectedSkill ? `${selectedType ? '&' : '?'}skill=${selectedSkill}` : ''}`}
               className="flex items-center justify-between w-full group hover:bg-secondary/5 p-2 rounded-lg transition-colors"
             >
               <div>
@@ -79,12 +88,29 @@ export default function ActiveFilters({ selectedLanguage, selectedType }: Active
           
           {selectedType && (
             <Link
-              href={`/filters${selectedLanguage ? `?language=${selectedLanguage}` : ''}`}
+              href={`/filters${selectedLanguage ? `?language=${selectedLanguage}` : ''}${selectedSkill ? `${selectedLanguage ? '&' : '?'}skill=${selectedSkill}` : ''}`}
               className="flex items-center justify-between w-full group hover:bg-secondary/5 p-2 rounded-lg transition-colors"
             >
               <div>
                 <p className="text-sm text-text_secondary">Type de projet</p>
                 <p className="font-medium">{PROJECT_TYPE_LABELS[selectedType]}</p>
+              </div>
+              <div className="p-2 text-text_secondary group-hover:bg-red-500/10 group-hover:text-red-500 rounded-full transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+            </Link>
+          )}
+
+          {selectedSkill && (
+            <Link
+              href={`/filters${selectedLanguage ? `?language=${selectedLanguage}` : ''}${selectedType ? `${selectedLanguage ? '&' : '?'}type=${selectedType}` : ''}`}
+              className="flex items-center justify-between w-full group hover:bg-secondary/5 p-2 rounded-lg transition-colors"
+            >
+              <div>
+                <p className="text-sm text-text_secondary">Compétence</p>
+                <p className="font-medium">{selectedSkillName}</p>
               </div>
               <div className="p-2 text-text_secondary group-hover:bg-red-500/10 group-hover:text-red-500 rounded-full transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">

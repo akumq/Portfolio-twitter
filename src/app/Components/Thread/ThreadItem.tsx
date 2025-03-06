@@ -113,14 +113,13 @@ export default function ThreadItem({ id, initialData }: ThreadItemProps) {
     isThumbnail: false
   })) || [];
 
-  const handleMediaClick = (index: number) => {
+  const handleMediaClick = async (index: number): Promise<void> => {
     setCurrentMediaIndex(index);
     setIsModalOpen(true);
     
-    // Si c'est une vidéo, on la démarre automatiquement
     const media = allMedias[index];
     if (media.type === 'VIDEO') {
-      handleVideoStateChange(media.id, {
+      await handleVideoStateChange(media.id, {
         isPlaying: true,
         currentTime: videoTimestamps[media.id] || 0
       });
@@ -180,14 +179,14 @@ export default function ThreadItem({ id, initialData }: ThreadItemProps) {
     ? [{ id: 'main', fileName: thread.imageUrl, type: 'IMAGE' as const }, ...processedMedias]
     : processedMedias;
 
-  const handleVideoStateChange = (mediaId: string, state: { isPlaying: boolean; currentTime: number }) => {
+  const handleVideoStateChange = async (mediaId: string, state: { isPlaying: boolean; currentTime: number }): Promise<void> => {
     setVideoStates(prev => ({
       ...prev,
       [mediaId]: state
     }));
   };
 
-  const handleVideoTimeUpdate = (mediaId: string, time: number) => {
+  const handleVideoTimeUpdate = async (mediaId: string, time: number): Promise<void> => {
     setVideoTimestamps(prev => ({
       ...prev,
       [mediaId]: time

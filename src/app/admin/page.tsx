@@ -7,6 +7,10 @@ import { useEffect, useState } from 'react';
 import { User, Thread, Language, ProjectType, Media } from '@prisma/client';
 import Image from 'next/image';
 import { useMediaUrl } from '@/hooks/useMediaUrl';
+import CategoryEditor from '@/app/Components/Admin/CategoryEditor';
+import SkillEditor from '@/app/Components/Admin/SkillEditor';
+import LanguageEditor from '@/app/Components/Admin/LanguageEditor';
+import { Octokit } from '@octokit/rest';
 
 interface MediaPreview {
   file: File;
@@ -106,7 +110,7 @@ export default function AdminPage() {
     status: "loading" | "authenticated" | "unauthenticated" 
   };
   const router = useRouter();
-  const [activeSection, setActiveSection] = useState<'threads' | 'users' | 'languages' | 'comments' | 'medias'>('threads');
+  const [activeSection, setActiveSection] = useState<'threads' | 'users' | 'languages' | 'comments' | 'medias' | 'skills' | 'categories' | 'projectTypes'>('threads');
   const [users, setUsers] = useState<User[]>([]);
   const [threads, setThreads] = useState<(Thread & { medias: MediaWithThumbnail[] })[]>([]);
   const [loading, setLoading] = useState(true);
@@ -120,6 +124,9 @@ export default function AdminPage() {
     selectedLanguages: [] as number[]
   });
   const [mediaList, setMediaList] = useState<MediaWithThumbnail[]>([]);
+  const [isDetectingLanguages, setIsDetectingLanguages] = useState(false);
+  const [projectTypes, setProjectTypes] = useState<ProjectType[]>([]);
+  const [newProjectType, setNewProjectType] = useState('');
 
   useEffect(() => {
     if (status === 'unauthenticated' || (status === 'authenticated' && !session?.user?.isAdmin)) {
@@ -130,19 +137,21 @@ export default function AdminPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [usersRes, threadsRes, languagesRes, mediasRes] = await Promise.all([
+        const [usersRes, threadsRes, languagesRes, mediasRes, projectTypesRes] = await Promise.all([
           fetch('/api/admin/users'),
           fetch('/api/threads'),
           fetch('/api/languages'),
-          fetch('/api/medias')
+          fetch('/api/medias'),
+          fetch('/api/project-types')
         ]);
 
-        if (usersRes.ok && threadsRes.ok && languagesRes.ok && mediasRes.ok) {
-          const [userData, threadsData, languagesData, mediasData] = await Promise.all([
+        if (usersRes.ok && threadsRes.ok && languagesRes.ok && mediasRes.ok && projectTypesRes.ok) {
+          const [userData, threadsData, languagesData, mediasData, projectTypesData] = await Promise.all([
             usersRes.json(),
             threadsRes.json(),
             languagesRes.json(),
-            mediasRes.json()
+            mediasRes.json(),
+            projectTypesRes.json()
           ]);
 
           // Récupérer les médias pour chaque thread
@@ -156,6 +165,7 @@ export default function AdminPage() {
           setThreads(threadsWithMedias);
           setLanguages(languagesData);
           setMediaList(mediasData);
+          setProjectTypes(projectTypesData);
         }
       } catch (error) {
         console.error('Erreur lors de la récupération des données:', error);
@@ -254,8 +264,11 @@ export default function AdminPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...newThread,
-          languages: newThread.selectedLanguages
+          title: newThread.title,
+          content: newThread.content,
+          github: newThread.github,
+          types: newThread.types,
+          languageIds: newThread.selectedLanguages
         }),
       });
 
@@ -433,6 +446,154 @@ export default function AdminPage() {
     }
   };
 
+  const detectLanguages = async () => {
+    if (!newThread.github) {
+      alert('Veuillez d\'abord entrer une URL GitHub');
+      return;
+    }
+
+    setIsDetectingLanguages(true);
+    try {
+      const octokit = new Octokit({
+        auth: process.env.NEXT_PUBLIC_GITHUB_TOKEN
+      });
+
+      // Extraire owner/repo de l'URL GitHub
+      const githubUrl = newThread.github.trim();
+      const urlMatch = githubUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
+      
+      if (!urlMatch) {
+        throw new Error('URL GitHub invalide. Format attendu: https://github.com/owner/repo');
+      }
+
+      const [, owner, repo] = urlMatch;
+
+      // Récupérer les langages du dépôt
+      const { data: repoLanguages } = await octokit.repos.listLanguages({ owner, repo });
+      const languageNames = Object.keys(repoLanguages);
+
+      if (languageNames.length === 0) {
+        throw new Error('Aucun langage détecté dans ce dépôt.');
+      }
+
+      // Récupérer tous les langages existants
+      const response = await fetch('/api/languages');
+      const existingLanguages = await response.json();
+      const existingLanguageNames = existingLanguages.map((lang: Language) => lang.name);
+
+      // Identifier les nouveaux langages
+      const newLanguageNames = languageNames.filter(name => !existingLanguageNames.includes(name));
+
+      // Créer les nouveaux langages
+      await Promise.all(
+        newLanguageNames.map(async (name) => {
+          try {
+            const response = await fetch('/api/languages', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name })
+            });
+            if (response.ok) {
+              return await response.json();
+            }
+            return null;
+          } catch (error) {
+            console.error(`Erreur lors de la création du langage ${name}:`, error);
+            return null;
+          }
+        })
+      );
+
+      // Mettre à jour la liste des langages
+      const updatedLanguagesResponse = await fetch('/api/languages');
+      const updatedLanguages = await updatedLanguagesResponse.json();
+      setLanguages(updatedLanguages);
+
+      // Sélectionner les langages détectés
+      const detectedLanguageIds = updatedLanguages
+        .filter((lang: Language) => languageNames.includes(lang.name))
+        .map((lang: Language) => lang.id);
+
+      setNewThread(prev => ({
+        ...prev,
+        selectedLanguages: detectedLanguageIds
+      }));
+
+      const message = newLanguageNames.length > 0 
+        ? `${detectedLanguageIds.length} langage(s) détecté(s) dont ${newLanguageNames.length} nouveau(x) !`
+        : `${detectedLanguageIds.length} langage(s) détecté(s) !`;
+      
+      alert(message);
+
+    } catch (error) {
+      console.error('Erreur lors de la détection des langages:', error);
+      alert(error instanceof Error ? error.message : 'Une erreur est survenue lors de la détection des langages');
+    } finally {
+      setIsDetectingLanguages(false);
+    }
+  };
+
+  const handleAddProjectType = async () => {
+    if (!newProjectType.trim()) {
+      alert('Veuillez entrer un nom pour le type de projet');
+      return;
+    }
+
+    if (!Object.values(ProjectType).includes(newProjectType as ProjectType)) {
+      alert('Type de projet non valide. Les types disponibles sont: ' + Object.values(ProjectType).join(', '));
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/project-types', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: newProjectType }),
+      });
+
+      if (response.ok) {
+        const projectTypesRes = await fetch('/api/project-types');
+        if (projectTypesRes.ok) {
+          const projectTypesData = await projectTypesRes.json();
+          setProjectTypes(projectTypesData);
+        }
+        setNewProjectType('');
+        alert('Type de projet ajouté avec succès !');
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || 'Erreur lors de l\'ajout du type de projet');
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout du type de projet:', error);
+      alert(error instanceof Error ? error.message : 'Une erreur est survenue');
+    }
+  };
+
+  const handleDeleteProjectType = async (type: ProjectType) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer le type de projet "${type}" ?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/project-types/${encodeURIComponent(type)}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setProjectTypes(projectTypes.filter(t => t !== type));
+        alert('Type de projet supprimé avec succès !');
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || 'Erreur lors de la suppression du type de projet');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression du type de projet:', error);
+      alert(error instanceof Error ? error.message : 'Une erreur est survenue');
+    }
+  };
+
   if (status === 'loading' || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -442,10 +603,10 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-gray-900">
       <div className="max-w-7xl mx-auto px-4">
         {/* En-tête */}
-        <header className="py-6 border-b border-border_color mb-8">
+        <header className="py-6 border-b border-gray-800 mb-8">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">Administration</h1>
             <div className="flex items-center gap-4">
@@ -458,22 +619,49 @@ export default function AdminPage() {
         </header>
 
         {/* Navigation entre sections */}
-        <nav className="mb-8">
-          <div className="flex gap-4">
-            {(['threads', 'users', 'languages', 'comments', 'medias'] as const).map((section) => (
-              <button
-                key={section}
-                onClick={() => setActiveSection(section)}
-                className={`px-4 py-2 rounded-lg transition-colors
-                  ${activeSection === section 
-                    ? 'bg-text_highlight text-white' 
-                    : 'bg-secondary/10 text-gray-400 hover:bg-secondary/20'
-                  }`}
-              >
-                {section.charAt(0).toUpperCase() + section.slice(1)}
-              </button>
-            ))}
-          </div>
+        <nav className="flex border-b border-gray-800 mb-6">
+          <button
+            onClick={() => setActiveSection('threads')}
+            className={`px-4 py-2 font-medium ${activeSection === 'threads' ? 'text-text_highlight border-b-2 border-text_highlight' : 'text-gray-400 hover:text-gray-200'}`}
+          >
+            Threads
+          </button>
+          <button
+            onClick={() => setActiveSection('users')}
+            className={`px-4 py-2 font-medium ${activeSection === 'users' ? 'text-text_highlight border-b-2 border-text_highlight' : 'text-gray-400 hover:text-gray-200'}`}
+          >
+            Utilisateurs
+          </button>
+          <button
+            onClick={() => setActiveSection('languages')}
+            className={`px-4 py-2 font-medium ${activeSection === 'languages' ? 'text-text_highlight border-b-2 border-text_highlight' : 'text-gray-400 hover:text-gray-200'}`}
+          >
+            Langages
+          </button>
+          <button
+            onClick={() => setActiveSection('skills')}
+            className={`px-4 py-2 font-medium ${activeSection === 'skills' ? 'text-text_highlight border-b-2 border-text_highlight' : 'text-gray-400 hover:text-gray-200'}`}
+          >
+            Compétences
+          </button>
+          <button
+            onClick={() => setActiveSection('categories')}
+            className={`px-4 py-2 font-medium ${activeSection === 'categories' ? 'text-text_highlight border-b-2 border-text_highlight' : 'text-gray-400 hover:text-gray-200'}`}
+          >
+            Catégories
+          </button>
+          <button
+            onClick={() => setActiveSection('medias')}
+            className={`px-4 py-2 font-medium ${activeSection === 'medias' ? 'text-text_highlight border-b-2 border-text_highlight' : 'text-gray-400 hover:text-gray-200'}`}
+          >
+            Médias
+          </button>
+          <button
+            onClick={() => setActiveSection('projectTypes')}
+            className={`px-4 py-2 font-medium ${activeSection === 'projectTypes' ? 'text-text_highlight border-b-2 border-text_highlight' : 'text-gray-400 hover:text-gray-200'}`}
+          >
+            Types de projet
+          </button>
         </nav>
 
         {/* Contenu principal */}
@@ -481,7 +669,7 @@ export default function AdminPage() {
           {activeSection === 'threads' && (
             <div className="space-y-8">
               {/* Formulaire de création */}
-              <div className="bg-secondary/5 rounded-lg border border-border_color p-6">
+              <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
                 <h2 className="text-lg font-bold mb-4">Nouveau Thread</h2>
                 <form onSubmit={handleThreadSubmit} className="space-y-4">
                   <input
@@ -489,7 +677,7 @@ export default function AdminPage() {
                     placeholder="Titre"
                     value={newThread.title}
                     onChange={(e) => setNewThread({ ...newThread, title: e.target.value })}
-                    className="w-full px-4 py-2 bg-secondary/10 rounded-lg border border-border_color focus:outline-none focus:border-text_highlight"
+                    className="w-full px-4 py-2 bg-gray-900 rounded-lg border border-gray-700 focus:outline-none focus:border-text_highlight"
                     required
                   />
 
@@ -498,62 +686,64 @@ export default function AdminPage() {
                     value={newThread.content}
                     onChange={(e) => setNewThread({ ...newThread, content: e.target.value })}
                     rows={4}
-                    className="w-full px-4 py-2 bg-secondary/10 rounded-lg border border-border_color focus:outline-none focus:border-text_highlight resize-none"
+                    className="w-full px-4 py-2 bg-gray-900 rounded-lg border border-gray-700 focus:outline-none focus:border-text_highlight resize-none"
                     required
                   />
 
-                  <input
-                    type="url"
-                    placeholder="Lien GitHub (optionnel)"
-                    value={newThread.github || ''}
-                    onChange={(e) => setNewThread({ ...newThread, github: e.target.value })}
-                    className="w-full px-4 py-2 bg-secondary/10 rounded-lg border border-border_color focus:outline-none focus:border-text_highlight"
-                  />
-
-                  <div>
-                    <h3 className="font-medium mb-2">Types de Projet</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {Object.values(ProjectType).map((type) => (
-                        <label key={type} className="inline-flex items-center">
+                  {/* Sélection des langages */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2">Langages</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-2 border border-gray-700 rounded-lg">
+                      {languages.map((language) => (
+                        <div key={language.id} className="flex items-center">
                           <input
                             type="checkbox"
-                            checked={newThread.types.includes(type)}
-                            onChange={(e) => {
-                              const types = e.target.checked
-                                ? [...newThread.types, type]
-                                : newThread.types.filter(t => t !== type);
-                              setNewThread({ ...newThread, types });
+                            id={`language-${language.id}`}
+                            checked={newThread.selectedLanguages.includes(language.id)}
+                            onChange={() => {
+                              const isSelected = newThread.selectedLanguages.includes(language.id);
+                              setNewThread({
+                                ...newThread,
+                                selectedLanguages: isSelected
+                                  ? newThread.selectedLanguages.filter(id => id !== language.id)
+                                  : [...newThread.selectedLanguages, language.id]
+                              });
                             }}
-                            className="sr-only peer"
+                            className="mr-2 h-4 w-4 rounded bg-gray-900 border-gray-700 text-text_highlight focus:ring-text_highlight"
                           />
-                          <span className="px-3 py-1 rounded-full text-sm border border-border_color peer-checked:bg-text_highlight peer-checked:border-text_highlight cursor-pointer transition-colors">
-                            {type}
-                          </span>
-                        </label>
+                          <label htmlFor={`language-${language.id}`} className="text-sm cursor-pointer">
+                            {language.name}
+                          </label>
+                        </div>
                       ))}
                     </div>
                   </div>
 
-                  <div>
-                    <h3 className="font-medium mb-2">Langages</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {languages.map((lang) => (
-                        <label key={lang.id} className="inline-flex items-center">
+                  {/* Sélection des types de projet */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2">Types de projet</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-2 border border-gray-700 rounded-lg">
+                      {projectTypes.map((type) => (
+                        <div key={type} className="flex items-center">
                           <input
                             type="checkbox"
-                            checked={newThread.selectedLanguages.includes(lang.id)}
-                            onChange={(e) => {
-                              const selectedLanguages = e.target.checked
-                                ? [...newThread.selectedLanguages, lang.id]
-                                : newThread.selectedLanguages.filter(id => id !== lang.id);
-                              setNewThread({ ...newThread, selectedLanguages });
+                            id={`type-${type}`}
+                            checked={newThread.types.includes(type)}
+                            onChange={() => {
+                              const isSelected = newThread.types.includes(type);
+                              setNewThread({
+                                ...newThread,
+                                types: isSelected
+                                  ? newThread.types.filter(t => t !== type)
+                                  : [...newThread.types, type]
+                              });
                             }}
-                            className="sr-only peer"
+                            className="mr-2 h-4 w-4 rounded bg-gray-900 border-gray-700 text-text_highlight focus:ring-text_highlight"
                           />
-                          <span className="px-3 py-1 rounded-full text-sm border border-border_color peer-checked:bg-text_highlight peer-checked:border-text_highlight cursor-pointer transition-colors">
-                            {lang.name}
-                          </span>
-                        </label>
+                          <label htmlFor={`type-${type}`} className="text-sm cursor-pointer">
+                            {type}
+                          </label>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -564,7 +754,7 @@ export default function AdminPage() {
                     <div className="space-y-4">
                       <div className="flex items-center justify-center w-full">
                         <label className="w-full cursor-pointer">
-                          <div className="flex flex-col items-center justify-center w-full h-32 border-2 border-border_color border-dashed rounded-lg hover:bg-secondary/5 transition-colors">
+                          <div className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-700 border-dashed rounded-lg hover:bg-gray-700/20 transition-colors">
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
                               <svg className="w-8 h-8 mb-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -591,7 +781,7 @@ export default function AdminPage() {
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                           {medias.map((media, index) => (
                             <div key={index} className="relative group">
-                              <div className="aspect-video relative rounded-lg overflow-hidden bg-secondary/20">
+                              <div className="aspect-video relative rounded-lg overflow-hidden bg-gray-700">
                                 {media.file.type.startsWith('video/') ? (
                                   <video
                                     src={media.preview}
@@ -633,13 +823,43 @@ export default function AdminPage() {
                                 placeholder="Description du média"
                                 value={media.alt || ''}
                                 onChange={(e) => updateMediaAlt(index, e.target.value)}
-                                className="mt-2 w-full px-2 py-1 text-sm bg-secondary/10 border border-border_color rounded focus:outline-none focus:border-text_highlight"
+                                className="mt-2 w-full px-2 py-1 text-sm bg-gray-900 border border-gray-700 rounded focus:outline-none focus:border-text_highlight"
                               />
                             </div>
                           ))}
                         </div>
                       )}
                     </div>
+                  </div>
+
+                  <div>
+                    <input
+                      type="url"
+                      placeholder="Lien GitHub (optionnel)"
+                      value={newThread.github || ''}
+                      onChange={(e) => setNewThread({ ...newThread, github: e.target.value })}
+                      className="w-full px-4 py-2 bg-gray-900 rounded-lg border border-gray-700 focus:outline-none focus:border-text_highlight"
+                    />
+                    {newThread.github && (
+                      <button
+                        type="button"
+                        onClick={detectLanguages}
+                        disabled={isDetectingLanguages}
+                        className="mt-2 w-full px-4 py-2 bg-text_highlight/20 text-text_highlight rounded-lg font-medium hover:bg-text_highlight/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isDetectingLanguages ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Détection en cours...
+                          </span>
+                        ) : (
+                          'Détecter les langages'
+                        )}
+                      </button>
+                    )}
                   </div>
 
                   <button
@@ -654,7 +874,7 @@ export default function AdminPage() {
               {/* Liste des threads */}
               <div className="grid gap-4 md:grid-cols-2">
                 {threads.map((thread) => (
-                  <div key={thread.id} className="bg-secondary/5 rounded-lg border border-border_color p-4">
+                  <div key={thread.id} className="bg-gray-800 rounded-lg border border-gray-700 p-4">
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <h3 className="text-lg font-bold">{thread.title}</h3>
@@ -681,7 +901,7 @@ export default function AdminPage() {
                       {thread.types.map((type) => (
                         <span
                           key={type}
-                          className="px-2 py-0.5 bg-secondary/20 rounded-full text-xs"
+                          className="px-2 py-0.5 bg-gray-700 rounded-full text-xs"
                         >
                           {type}
                         </span>
@@ -705,9 +925,9 @@ export default function AdminPage() {
           )}
 
           {activeSection === 'users' && (
-            <div className="bg-secondary/5 rounded-lg border border-border_color overflow-hidden">
+            <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
               <table className="w-full">
-                <thead className="bg-secondary/10">
+                <thead className="bg-gray-900">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Nom</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Email</th>
@@ -715,9 +935,9 @@ export default function AdminPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border_color">
+                <tbody className="divide-y divide-gray-700">
                   {users.map((user) => (
-                    <tr key={user.id} className="hover:bg-secondary/10 transition-colors">
+                    <tr key={user.id} className="hover:bg-gray-700/50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">{user.name || 'N/A'}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{user.email || 'N/A'}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -746,14 +966,13 @@ export default function AdminPage() {
           )}
 
           {activeSection === 'languages' && (
-            <div className="bg-secondary/5 rounded-lg border border-border_color p-6">
-              <h2 className="text-lg font-bold mb-4">Gestion des Langages</h2>
-              <p className="text-gray-400">Cette fonctionnalité sera bientôt disponible.</p>
+            <div className="space-y-6">
+              <LanguageEditor />
             </div>
           )}
 
           {activeSection === 'comments' && (
-            <div className="bg-secondary/5 rounded-lg border border-border_color p-6">
+            <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
               <h2 className="text-lg font-bold mb-4">Gestion des Commentaires</h2>
               <p className="text-gray-400">Cette fonctionnalité sera bientôt disponible.</p>
             </div>
@@ -764,7 +983,7 @@ export default function AdminPage() {
               <h2 className="text-lg font-bold">Gestion des Médias</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {mediaList.map((media) => (
-                  <div key={media.id} className="bg-secondary/5 rounded-lg border border-border_color p-4">
+                  <div key={media.id} className="bg-gray-800 rounded-lg border border-gray-700 p-4">
                     <div className="mb-3">
                       <MediaItem media={media} />
                     </div>
@@ -775,7 +994,7 @@ export default function AdminPage() {
                         value={media.alt || ''}
                         onChange={(e) => updateMediaAltText(media.id, e.target.value)}
                         placeholder="Description du média"
-                        className="w-full px-2 py-1 text-sm bg-secondary/10 border border-border_color rounded focus:outline-none focus:border-text_highlight"
+                        className="w-full px-2 py-1 text-sm bg-gray-900 border border-gray-700 rounded focus:outline-none focus:border-text_highlight"
                       />
 
                       <div className="flex justify-between items-center text-sm">
@@ -795,8 +1014,80 @@ export default function AdminPage() {
               </div>
             </div>
           )}
+
+          {activeSection === 'skills' && (
+            <div className="space-y-6">
+              <SkillEditor />
+            </div>
+          )}
+
+          {activeSection === 'categories' && (
+            <div className="space-y-6">
+              <CategoryEditor />
+            </div>
+          )}
+
+          {activeSection === 'projectTypes' && (
+            <div className="space-y-6">
+              <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
+                <h2 className="text-2xl font-bold mb-6">Gestion des types de projet</h2>
+                
+                {/* Formulaire d'ajout de type de projet */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-4">Ajouter un nouveau type de projet</h3>
+                  <div className="flex gap-2">
+                    <select
+                      value={newProjectType}
+                      onChange={(e) => setNewProjectType(e.target.value)}
+                      className="flex-1 px-4 py-2 bg-gray-900 rounded-lg border border-gray-700 focus:outline-none focus:border-text_highlight"
+                    >
+                      <option value="">Sélectionnez un type...</option>
+                      {Object.values(ProjectType)
+                        .filter(type => !projectTypes.includes(type))
+                        .map(type => (
+                          <option key={type} value={type}>{type}</option>
+                        ))
+                      }
+                    </select>
+                    <button
+                      onClick={handleAddProjectType}
+                      className="px-4 py-2 bg-text_highlight rounded-lg font-bold hover:bg-text_highlight/90 transition-colors disabled:opacity-50"
+                      disabled={!newProjectType}
+                    >
+                      Ajouter
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Liste des types de projet */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Types de projet existants</h3>
+                  {projectTypes.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {projectTypes.map((type) => (
+                        <div key={type} className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
+                          <span>{type}</span>
+                          <button
+                            onClick={() => handleDeleteProjectType(type)}
+                            className="p-1 text-red-500 hover:text-red-400"
+                            title="Supprimer"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-400">Aucun type de projet disponible.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </main>
   );
-} 
+}

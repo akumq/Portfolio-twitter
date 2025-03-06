@@ -5,6 +5,7 @@ import AuthProvider from "@/app/Components/AuthProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import MobileNav from './Components/Navigations/MobileNav'
 import { VideoPlayerProvider } from '@/contexts/VideoPlayerContext';
+import Script from 'next/script';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +28,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <Script id="hydration-fix">{`
+          // Supprimer les attributs ajoutés par les extensions
+          document.documentElement.removeAttribute('data-lt-installed');
+        `}</Script>
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json();
-    const { title, content, github, types, languages } = data;
+    const { title, content, github, types, languageIds } = data;
 
     // Validation des données
     if (!title?.trim() || !content?.trim()) {
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
         github: github?.trim() || null,
         types: types || [],
         languages: {
-          connect: languages?.map((id: number) => ({ id })) || []
+          connect: languageIds?.map((id: number) => ({ id })) || []
         }
       },
       select: {
