@@ -21,6 +21,18 @@ export const metadata: Metadata = {
   title: "Sow Amadou | Portfolio",
   description: "Un portfolio moderne inspiré de l'interface de Twitter, avec un design épuré et une expérience utilisateur optimisée.",
   metadataBase: new URL('https://sowamadou.com'),
+  icons: {
+    icon: [
+      { url: "https://cdn.sowamadou.com/portfolio-media/logo-Portfolio.svg" },
+      { url: "/favicon.ico" }
+    ],
+    apple: [
+      { url: "https://cdn.sowamadou.com/portfolio-media/logo-Portfolio.svg" }
+    ],
+    shortcut: [
+      { url: "https://cdn.sowamadou.com/portfolio-media/logo-Portfolio.svg" }
+    ]
+  },
   openGraph: {
     title: "Sow Amadou | Portfolio",
     description: "Un portfolio moderne inspiré de l'interface de Twitter, avec un design épuré et une expérience utilisateur optimisée.",
@@ -62,6 +74,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="https://cdn.sowamadou.com/portfolio-media/logo-Portfolio.svg" type="image/svg+xml" />
+        <link rel="alternate icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="apple-touch-icon" href="https://cdn.sowamadou.com/portfolio-media/logo-Portfolio.svg" />
         <Script id="hydration-fix">{`
           // Supprimer les attributs ajoutés par les extensions
           document.documentElement.removeAttribute('data-lt-installed');
