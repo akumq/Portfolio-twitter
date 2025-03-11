@@ -74,7 +74,7 @@ async function getCVData(): Promise<CVData> {
       },
       {
         label: 'Linkedin',
-        link: 'https://www.linkedin.com/in/amadou-sow-861765212/'
+        link: 'https://www.linkedin.com/in/sow-amadou1'
       }
     ],
     skills: [   
