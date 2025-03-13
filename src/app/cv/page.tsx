@@ -8,7 +8,6 @@ interface CVData {
   jobTitle: string;
   city: string;
   country: string;
-  phone: string;
   email: string;
   education: Array<{
     school: string;
@@ -51,48 +50,41 @@ async function getCVData(): Promise<CVData> {
     jobTitle: "Etudiant en Master MIAGE en Recherche d'Alternance",
     city: 'Nancy',
     country: 'France',
-    phone: '+33781965497',
     email: 'madousow88@gmail.com',
     education: [
       {
-        school: 'IUT Saint Die Des Vosges',
-        degree: 'Diplome',
+        school: 'IDMC Nancy',
+        degree: 'Master MIAGE',
         graduationDate: '2024',
-        description: 'BUT Informatique'
-      },
-      {
-        school: 'Lycee Pierre Mendes France',
-        degree: 'Lycee',
-        graduationDate: '2020',
-        description: "Bac S, Science de L'ingénieur"
+        description: 'Institut des sciences du Digital, Management et Cognition'
       }
     ],
     links: [
-      {
+        {
         label: 'GitHub',
         link: 'https://github.com/akumq'
       },
       {
-        label: 'Linkedin',
-        link: 'https://www.linkedin.com/in/sow-amadou1'
+        label : 'Linkedin',
+        link : 'https://www.linkedin.com/in/sow-amadou1/'
       }
     ],
     skills: [   
-      'C# / net / ASP NET',
+      '<b>Java / Spring Boot</b>',
+      '<b>C# / net / ASP NET</b>',
       'C / C++',
       'Lua',
       'Vulkan / OpenGL',
-      'PHP',
-      'Java', 
-      'Node',
-      'SQL',
-      'GIT',
-      'Docker',
+      'NodeJS',
+      '<b>SQL / MySQL / PostgreSQL</b>',
+      '<b>GIT</b>',
+      '<b>Docker / Kubernetes</b>',
       'Modélisation IA',
-      'API-REST'
+      'API-REST',
+      '<b>SCRUM / AGILE / LEAN</b>',
     ],
-    languages: ['Francais: Native', 'Anglais: Toeic 870 / 990'],
-    professionalSummary: `Je suis passionné par le digital. Grâce à mon parcours scolaire, j'ai acquis des compétences en algorithmique en gestion de projet et en anglais. Mon expérience en alternance m'a permis de mettre en pratique mes connaissances théoriques et de travailler efficacement en équipe.`,
+    languages: ['Francais: Native','Anglais: Toeic 870 / 990'],
+    professionalSummary: `Je suis passionné par le digital. Grâce à mon parcours scolaire, j'ai acquis des compétences en algorithmique en gestion de projet et en anglais. Mon expérience en alternance m'a permis de mettre en pratique mes connaissances théoriques et de travailler efficacement en équipe. Je vise à créer des solutions innovantes et à contribuer activement à la réussite des projets en maîtrisant de nombreuses technologies différentes.`,
     employmentHistory: [
       {
         jobTitle: 'Alternant Développeur Junior',
@@ -101,12 +93,12 @@ async function getCVData(): Promise<CVData> {
         employer: 'Prefabat',
         city: 'Le Kertoff',
         achievements: [
-          "Conception et développement d'applications en C#, ASP.NET et VB.NET",
+          "Conception et développement d'applications en <b>C#, ASP.NET et VB.NET</b>",
           "Coordination de projets de développement logiciel",
-          "Administration et gestion des bases de données",
-          "Conception et gestion de bases de données relationnelles",
+          "Administration et gestion des bases de données,",
+          "Conception et gestion de bases de données relationnelles ",
           "Développement de modules personnalisés pour des sites WordPress",
-          "Implémentation et personnalisation de Microsoft Dynamics NAV"
+          "Implémentation et personnalisation de <b>Microsoft Dynamics NAV</b>"
         ]
       },
       {
@@ -120,49 +112,58 @@ async function getCVData(): Promise<CVData> {
           "pose des colis sur une chaine de tri",
           "Divers travaux de manutention"
         ]
-      }
+      },
     ],
     certificatesHistory: [
       {
         jobTitle: 'BUT Informatique',
         startDate: '2024',
         endDate: '',
-        employer: 'IUT de Saint-Die-Des-Vosges',
-        achievements: ['IUT de Saint-Die-Des-Vosges']
+        employer: '',
+        achievements: [
+          'IUT de Saint-Die-Des-Vosges ',
+        ]
       },
       {
         jobTitle: 'Licence MIASHS (Codiplomation)',
         startDate: '2024',
         endDate: '',
-        employer: 'IDMC',
-        achievements: ['IDMC (Institut des sciences du Digital, Management Cognition)']
+        employer: '',
+        achievements: [
+          'IDMC (Institut des sciences du Digital, Management Cognition°'
+        ]
       },
       {
-        jobTitle: 'TOIEC',
+        jobTitle: 'TOIEC (Test of English for International Communication)',
         startDate: '2024',
         endDate: '',
         employer: '',
-        achievements: ['Score: 870/990']
+        achievements: [
+          'Score: 870/990',
+        ]
       },
       {
-        jobTitle: "Baccalauréat Scientifique | Science de l'ingénieur",
+        jobTitle: "Baccalauréat Scientifique| Science de l'ingénieur",
         startDate: '2021',
         endDate: '',
-        employer: 'Lycée Pierre Mendes France',
-        achievements: ['Lycée Pierre Mendes France | Epinal']
+        employer: '',
+        achievements: [ 
+          'Lycée Pierre Mendes France | Epinal ',
+        ]
       }
     ],
     passions: [
       {
         name: "Intelligence Artificielle",
-        content: "Assez tôt, ce sujet m'a intéressé, aussi bien pour les questions morales qu'il pose, mais aussi pour les différentes applications technologiques qu'il permet. De l'agent de conversation au générateur d'image, l'IA est désormais partout. C'est un outil formidable avec tellement d'applications que n'importe quel secteur est concerné."
+        content: "Assez tôt, ce sujet m'a intéressé, aussi bien pour les questions morales qu'il pose, mais aussi pour les différentes applications technologiques qu'il permet. De l'agent de conversation au générateur d'image, l'IA est désormais partout. C'est un outil formidable avec tellement d'applications que n'importe quel secteur est concerné.",
       },
       {
         name: "Jeux Vidéo",
         content: "J'utilise aussi bien les jeux vidéo comme un outil ludique ou comme un support de développement. Le jeu vidéo m'a permis de découvrir de nombreux domaines différents comme l'imagerie numérique, l'UI, l'UX, la modélisation 3D et plus encore. C'est un domaine pluridisciplinaire que j'affectionne et que je continue d'explorer."
       }
-    ]
-  };
+    ],
+  }
+
 
   return cvData;
 }
