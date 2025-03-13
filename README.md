@@ -1,36 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portfolio Twitter-Style
 
-## Getting Started
+Un portfolio moderne inspiré de l'interface de Twitter, développé avec Next.js, TypeScript et Tailwind CSS.
 
-First, run the development server:
+![Aperçu du Portfolio](https://cdn.sowamadou.com/portfolio-media/portfolio-twitter.png)
 
+## 🌟 Fonctionnalités
+
+- **Design Moderne** : Interface utilisateur inspirée de Twitter pour une expérience familière
+- **Mode Sombre** : Design optimisé pour le mode sombre
+- **Responsive** : S'adapte parfaitement à tous les appareils (mobile, tablette, desktop)
+- **Authentification** : Connexion via GitHub grâce à NextAuth.js
+- **Base de Données** : PostgreSQL avec Prisma comme ORM
+- **Stockage Media** : Intégration avec MinIO pour le stockage des médias
+- **Email** : Configuration SMTP pour les communications par email
+
+## 🛠️ Technologies Utilisées
+
+- **Frontend** :
+  - Next.js 14
+  - TypeScript
+  - Tailwind CSS
+  - React
+
+- **Backend** :
+  - Prisma (ORM)
+  - PostgreSQL
+  - NextAuth.js
+  - MinIO
+
+## 📦 Installation
+
+1. **Cloner le repository**
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/akumq/portfolio-twitter.git
+cd portfolio-twitter
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Installer les dépendances**
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. **Configuration des variables d'environnement**
+Créez un fichier `.env` à la racine du projet avec les variables suivantes :
+```env
+# Base de données
+DATABASE_URL=votre_url_postgresql
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# GitHub OAuth
+GITHUB_ID=votre_github_id
+GITHUB_SECRET=votre_github_secret
+GITHUB_TOKEN=votre_github_token
 
-## Learn More
+# NextAuth
+NEXTAUTH_SECRET=votre_secret
+NEXTAUTH_URL=http://localhost:3000
 
-To learn more about Next.js, take a look at the following resources:
+# SMTP
+SMTP_HOST=votre_smtp_host
+SMTP_PORT=587
+SMTP_USER=votre_email
+SMTP_PASSWORD=votre_mot_de_passe
+SMTP_FROM=votre_email_expediteur
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# MinIO
+MINIO_ENDPOINT=votre_endpoint
+MINIO_PORT=443
+MINIO_USE_SSL=true
+MINIO_ACCESS_KEY=votre_access_key
+MINIO_SECRET_KEY=votre_secret_key
+MINIO_BUCKET_NAME=votre_bucket
+MINIO_PUBLIC_URL=votre_url_public
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. **Initialiser la base de données**
+```bash
+npx prisma migrate dev
+```
 
-## Deploy on Vercel
+5. **Lancer le serveur de développement**
+```bash
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🚀 Déploiement
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Le projet est configuré pour être déployé avec Docker. Utilisez les commandes suivantes :
+
+```bash
+# Construire l'image
+docker build -t portfolio-twitter .
+
+# Lancer le conteneur
+docker run -p 3000:3000 portfolio-twitter
+```
+
+## 📝 Licence
+
+Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
+
+## 👤 Contact
+
+- GitHub : [@akumq](https://github.com/akumq)
+- LinkedIn : [Sow Amadou](https://www.linkedin.com/in/sow-amadou1/)
+- Email : madousow88@gmail.com

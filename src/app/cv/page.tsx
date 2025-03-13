@@ -70,18 +70,18 @@ async function getCVData(): Promise<CVData> {
       }
     ],
     skills: [   
-      '<b>Java / Spring Boot</b>',
-      '<b>C# / net / ASP NET</b>',
+      'Java / Spring Boot',
+      'C# / net / ASP NET',
       'C / C++',
       'Lua',
       'Vulkan / OpenGL',
       'NodeJS',
-      '<b>SQL / MySQL / PostgreSQL</b>',
-      '<b>GIT</b>',
-      '<b>Docker / Kubernetes</b>',
+      'SQL / MySQL / PostgreSQL',
+      'GIT',
+      'Docker / Kubernetes',
       'Modélisation IA',
       'API-REST',
-      '<b>SCRUM / AGILE / LEAN</b>',
+      'SCRUM / AGILE / LEAN',
     ],
     languages: ['Francais: Native','Anglais: Toeic 870 / 990'],
     professionalSummary: `Je suis passionné par le digital. Grâce à mon parcours scolaire, j'ai acquis des compétences en algorithmique en gestion de projet et en anglais. Mon expérience en alternance m'a permis de mettre en pratique mes connaissances théoriques et de travailler efficacement en équipe. Je vise à créer des solutions innovantes et à contribuer activement à la réussite des projets en maîtrisant de nombreuses technologies différentes.`,
@@ -93,12 +93,12 @@ async function getCVData(): Promise<CVData> {
         employer: 'Prefabat',
         city: 'Le Kertoff',
         achievements: [
-          "Conception et développement d'applications en <b>C#, ASP.NET et VB.NET</b>",
+          "Conception et développement d'applications en C#, ASP.NET et VB.NET",
           "Coordination de projets de développement logiciel",
           "Administration et gestion des bases de données,",
           "Conception et gestion de bases de données relationnelles ",
           "Développement de modules personnalisés pour des sites WordPress",
-          "Implémentation et personnalisation de <b>Microsoft Dynamics NAV</b>"
+          "Implémentation et personnalisation de Microsoft Dynamics NAV"
         ]
       },
       {
