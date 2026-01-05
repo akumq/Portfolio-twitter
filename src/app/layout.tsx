@@ -6,6 +6,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import MobileNav from './Components/Navigations/MobileNav'
 import { VideoPlayerProvider } from '@/contexts/VideoPlayerContext';
 import Script from 'next/script';
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -92,6 +93,7 @@ export default function RootLayout({
         </VideoPlayerProvider>
         <SpeedInsights />
         <MobileNav />
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID || "G-XYZ"} />
       </body>
     </html>
   );
