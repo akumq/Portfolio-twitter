@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import type { Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
-import type { AdapterUser } from "@auth/core/adapters";
+import type { AdapterUser } from "next-auth/adapters";
 
 type UserId = string | number;
 
